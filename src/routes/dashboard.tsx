@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useLocation } from "@tansta
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Package, Bot, MessageSquare, LogOut } from "lucide-react";
+import { Sparkles, Package, MessageCircle, LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardLayout,
@@ -23,8 +23,7 @@ function DashboardLayout() {
 
   const items = [
     { to: "/dashboard", label: "Produto", icon: Package, exact: true },
-    { to: "/dashboard/ia", label: "IA Groq", icon: Bot, exact: false },
-    { to: "/dashboard/chat", label: "Simulador", icon: MessageSquare, exact: false },
+    { to: "/dashboard/whatsapp", label: "WhatsApp", icon: MessageCircle, exact: false },
   ];
 
   return (
