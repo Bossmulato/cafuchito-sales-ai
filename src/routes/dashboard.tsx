@@ -23,8 +23,7 @@ function DashboardLayout() {
 
   const items = [
     { to: "/dashboard", label: "Produto", icon: Package, exact: true },
-    { to: "/dashboard/ia", label: "IA Groq", icon: Bot, exact: false },
-    { to: "/dashboard/chat", label: "Simulador", icon: MessageSquare, exact: false },
+    { to: "/dashboard/whatsapp", label: "WhatsApp", icon: MessageCircle, exact: false },
   ];
 
   return (
