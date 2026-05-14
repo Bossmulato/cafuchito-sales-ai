@@ -59,7 +59,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-gold/10 py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Grupo Cafuchito AI · Luanda, Angola
+        © {new Date().getFullYear()} Auto Vendas IA · Luanda, Angola
       </footer>
     </div>
   );
