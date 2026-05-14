@@ -37,41 +37,41 @@
 :root {
   --radius: 0.625rem;
 
-  /* Premium Black & Gold — aligned with sales page */
-  --background: oklch(0.07 0 0);              /* near-pure black */
-  --foreground: oklch(0.97 0.01 85);
+  /* Premium Dark + Mint/Teal — aligned with AutoVendas sales page */
+  --background: oklch(0.13 0.02 165);          /* deep dark with green tint */
+  --foreground: oklch(0.98 0.005 180);
 
-  --card: oklch(0.13 0.005 80);                /* dark gray surface */
-  --card-foreground: oklch(0.97 0.01 85);
+  --card: oklch(0.17 0.02 165);                /* slightly lighter dark surface */
+  --card-foreground: oklch(0.98 0.005 180);
 
-  --popover: oklch(0.13 0.005 80);
-  --popover-foreground: oklch(0.97 0.01 85);
+  --popover: oklch(0.17 0.02 165);
+  --popover-foreground: oklch(0.98 0.005 180);
 
-  --primary: oklch(0.82 0.14 85);              /* gold */
-  --primary-foreground: oklch(0.1 0 0);
+  --primary: oklch(0.78 0.16 165);             /* mint/teal accent */
+  --primary-foreground: oklch(0.13 0.02 165);
 
-  --secondary: oklch(0.18 0.005 80);
-  --secondary-foreground: oklch(0.95 0.03 85);
+  --secondary: oklch(0.22 0.02 165);
+  --secondary-foreground: oklch(0.95 0.01 180);
 
-  --muted: oklch(0.16 0.004 80);
-  --muted-foreground: oklch(0.68 0.02 85);
+  --muted: oklch(0.2 0.015 165);
+  --muted-foreground: oklch(0.7 0.02 170);
 
-  --accent: oklch(0.78 0.15 80);
-  --accent-foreground: oklch(0.08 0 0);
+  --accent: oklch(0.78 0.16 165);
+  --accent-foreground: oklch(0.13 0.02 165);
 
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
 
-  --border: oklch(0.3 0.04 80 / 30%);
-  --input: oklch(0.18 0.005 80);
-  --ring: oklch(0.82 0.14 85);
+  --border: oklch(0.78 0.16 165 / 18%);
+  --input: oklch(0.22 0.02 165);
+  --ring: oklch(0.78 0.16 165);
 
-  --gold: oklch(0.82 0.14 85);
-  --gold-soft: oklch(0.72 0.1 80);
+  --gold: oklch(0.78 0.16 165);                /* alias kept for legacy classes */
+  --gold-soft: oklch(0.7 0.13 170);
 
-  --gradient-gold: linear-gradient(135deg, oklch(0.9 0.13 92), oklch(0.7 0.14 70));
-  --gradient-dark: linear-gradient(180deg, oklch(0.08 0 0), oklch(0.05 0 0));
-  --shadow-gold: 0 10px 40px -10px oklch(0.82 0.14 85 / 0.4);
+  --gradient-gold: linear-gradient(135deg, oklch(0.82 0.17 170), oklch(0.7 0.16 160));
+  --gradient-dark: linear-gradient(180deg, oklch(0.14 0.02 165), oklch(0.1 0.015 165));
+  --shadow-gold: 0 10px 40px -10px oklch(0.78 0.16 165 / 0.45);
   --shadow-luxe: 0 20px 60px -20px oklch(0 0 0 / 0.8);
 }
 
