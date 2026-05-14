@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          benefits: string
+          created_at: string
+          description: string
+          faq: string
+          id: string
+          name: string
+          payment_data: string
+          price_kz: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          benefits?: string
+          created_at?: string
+          description?: string
+          faq?: string
+          id?: string
+          name: string
+          payment_data?: string
+          price_kz?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          benefits?: string
+          created_at?: string
+          description?: string
+          faq?: string
+          id?: string
+          name?: string
+          payment_data?: string
+          price_kz?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          groq_api_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          groq_api_key?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          groq_api_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
