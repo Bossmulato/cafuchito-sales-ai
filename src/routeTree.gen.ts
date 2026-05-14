@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardIaRouteImport } from './routes/dashboard.ia'
 import { Route as DashboardChatRouteImport } from './routes/dashboard.chat'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardWhatsappRoute = DashboardWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardIaRoute = DashboardIaRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/ia': typeof DashboardIaRoute
+  '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/ia': typeof DashboardIaRoute
+  '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/dashboard/chat': typeof DashboardChatRoute
   '/dashboard/ia': typeof DashboardIaRoute
+  '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard/chat'
     | '/dashboard/ia'
+    | '/dashboard/whatsapp'
     | '/dashboard/'
     | '/api/public/whatsapp/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard/chat'
     | '/dashboard/ia'
+    | '/dashboard/whatsapp'
     | '/dashboard'
     | '/api/public/whatsapp/webhook'
   id:
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard/chat'
     | '/dashboard/ia'
+    | '/dashboard/whatsapp'
     | '/dashboard/'
     | '/api/public/whatsapp/webhook'
   fileRoutesById: FileRoutesById
@@ -147,6 +159,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/whatsapp': {
+      id: '/dashboard/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/dashboard/whatsapp'
+      preLoaderRoute: typeof DashboardWhatsappRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/ia': {
       id: '/dashboard/ia'
       path: '/ia'
@@ -174,12 +193,14 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardChatRoute: typeof DashboardChatRoute
   DashboardIaRoute: typeof DashboardIaRoute
+  DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardChatRoute: DashboardChatRoute,
   DashboardIaRoute: DashboardIaRoute,
+  DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
