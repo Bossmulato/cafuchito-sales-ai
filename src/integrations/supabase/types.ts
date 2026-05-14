@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      bot_conversations: {
+        Row: {
+          contact_phone: string
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          contact_phone: string
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          contact_phone?: string
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           benefits: string
@@ -66,6 +93,36 @@ export type Database = {
         }
         Update: {
           groq_api_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_instances: {
+        Row: {
+          created_at: string
+          instance_name: string
+          phone_number: string | null
+          qr_code: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          instance_name: string
+          phone_number?: string | null
+          qr_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          instance_name?: string
+          phone_number?: string | null
+          qr_code?: string | null
+          status?: string
           updated_at?: string
           user_id?: string
         }
