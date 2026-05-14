@@ -51,7 +51,7 @@ function LoginPage() {
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 flex items-center justify-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          <span className="font-display text-xl font-bold">Grupo Cafuchito AI</span>
+          <span className="font-display text-xl font-bold">Auto Vendas IA</span>
         </Link>
         <div className="rounded-2xl border border-gold/30 bg-card/80 p-8 shadow-luxe backdrop-blur">
           <h1 className="mb-2 text-3xl font-bold text-gradient-gold">

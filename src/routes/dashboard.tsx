@@ -32,7 +32,7 @@ function DashboardLayout() {
       <aside className="hidden w-64 shrink-0 border-r border-gold/20 bg-card/60 p-6 md:block">
         <Link to="/" className="mb-10 flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          <span className="font-display text-base font-bold">Cafuchito AI</span>
+          <span className="font-display text-base font-bold">Auto Vendas IA</span>
         </Link>
         <nav className="space-y-1">
           {items.map((it) => {

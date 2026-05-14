@@ -72,10 +72,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Grupo Cafuchito AI — Automação de Vendas via WhatsApp" },
+      { title: "Auto Vendas IA — Automação de Vendas via WhatsApp" },
       { name: "description", content: "SaaS de automação de vendas via WhatsApp com IA. Configure produtos, integre a Groq e venda 24/7." },
-      { name: "author", content: "Grupo Cafuchito AI" },
-      { property: "og:title", content: "Grupo Cafuchito AI" },
+      { name: "author", content: "Auto Vendas IA" },
+      { property: "og:title", content: "Auto Vendas IA" },
       { property: "og:description", content: "Automação de vendas via WhatsApp com IA." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
