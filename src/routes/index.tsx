@@ -11,7 +11,7 @@ function Landing() {
       <header className="container mx-auto flex items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          <span className="font-display text-lg font-bold tracking-wide">Grupo Cafuchito AI</span>
+          <span className="font-display text-lg font-bold tracking-wide">Auto Vendas IA</span>
         </div>
         <nav className="flex items-center gap-3">
           <Link to="/login" className="text-sm text-muted-foreground hover:text-primary transition">Entrar</Link>
