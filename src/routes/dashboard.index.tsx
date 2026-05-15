@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { Package, Save, Pencil, CheckCircle2, Sparkles } from "lucide-react";
+import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/")({
   component: ProductPage,
