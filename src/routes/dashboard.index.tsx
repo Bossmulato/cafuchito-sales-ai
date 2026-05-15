@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { Package, Save } from "lucide-react";
+import { Package, Save, Pencil, CheckCircle2, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/")({
   component: ProductPage,
@@ -26,6 +26,7 @@ function ProductPage() {
   const [form, setForm] = useState<Product>(empty);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -37,7 +38,10 @@ function ProductPage() {
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setForm(data as Product);
+        if (data) {
+          setForm(data as Product);
+          setLastSaved((data as any).updated_at ?? null);
+        }
         setLoaded(true);
       });
   }, [user]);
@@ -68,27 +72,51 @@ function ProductPage() {
           payment_data: form.payment_data,
         }).select().single();
         if (error) throw error;
-        if (data) setForm(data as Product);
+        if (data) {
+          setForm(data as Product);
+          setLastSaved((data as any).updated_at ?? null);
+        }
       }
-      toast.success("Produto guardado");
+      toast.success("Produto guardado com sucesso!");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro");
+      toast.error(err instanceof Error ? err.message : "Erro ao guardar");
     } finally {
       setSaving(false);
     }
   };
 
   const field = "w-full rounded-md border border-gold/30 bg-input/40 px-4 py-3 text-foreground outline-none focus:border-primary";
+  const hasProduct = !!form.id;
 
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8 flex items-center gap-3">
         <Package className="h-6 w-6 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold text-gradient-gold">Configuração do Produto</h1>
-          <p className="text-sm text-muted-foreground">Estes dados alimentam o bot de vendas.</p>
+          <h1 className="text-3xl font-bold text-gradient-gold">
+            {hasProduct ? "Editar Produto" : "Configuração do Produto"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {hasProduct
+              ? "Altere os dados do seu produto e o bot atualiza automaticamente."
+              : "Estes dados alimentam o bot de vendas."}
+          </p>
         </div>
       </div>
+
+      {hasProduct && (
+        <div className="mb-6 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/10 p-4">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="text-sm text-foreground">
+            <p className="font-semibold">Produto configurado</p>
+            <p className="text-muted-foreground">
+              {lastSaved
+                ? `Última atualização: ${new Date(lastSaved).toLocaleString("pt-PT")}`
+                : "Pode editar os campos abaixo e guardar as alterações."}
+            </p>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={save} className="space-y-5 rounded-2xl border border-gold/30 bg-card/70 p-8 shadow-luxe">
         <div>
@@ -111,12 +139,12 @@ function ProductPage() {
         </div>
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">FAQ</label>
-          <textarea rows={4} placeholder="P: ...&#10;R: ..." value={form.faq}
+          <textarea rows={4} placeholder="P: ...\nR: ..." value={form.faq}
             onChange={(e) => setForm({ ...form, faq: e.target.value })} className={field} />
         </div>
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Dados de Pagamento (Multicaixa / Unitel Money)</label>
-          <textarea rows={3} placeholder="IBAN: ...&#10;Unitel Money: 9xx xxx xxx" value={form.payment_data}
+          <textarea rows={3} placeholder="IBAN: ...\nUnitel Money: 9xx xxx xxx" value={form.payment_data}
             onChange={(e) => setForm({ ...form, payment_data: e.target.value })} className={field} />
         </div>
         <button
@@ -124,8 +152,8 @@ function ProductPage() {
           disabled={saving || !loaded}
           className="flex items-center gap-2 rounded-md bg-gradient-gold px-6 py-3 font-semibold text-primary-foreground shadow-gold hover:opacity-90 disabled:opacity-50 transition"
         >
-          <Save className="h-4 w-4" />
-          {saving ? "A guardar..." : "Guardar Produto"}
+          {hasProduct ? <Pencil className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+          {saving ? "A guardar..." : hasProduct ? "Atualizar Produto" : "Guardar Produto"}
         </button>
       </form>
     </div>
