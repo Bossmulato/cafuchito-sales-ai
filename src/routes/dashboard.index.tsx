@@ -85,6 +85,23 @@ function ProductPage() {
     }
   };
 
+  const remove = async () => {
+    if (!user || !form.id) return;
+    if (!window.confirm("Tem a certeza que quer eliminar o produto? Esta ação não pode ser desfeita.")) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", form.id);
+      if (error) throw error;
+      setForm(empty);
+      setLastSaved(null);
+      toast.success("Produto eliminado com sucesso!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao eliminar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const field = "w-full rounded-md border border-gold/30 bg-input/40 px-4 py-3 text-foreground outline-none focus:border-primary";
   const hasProduct = !!form.id;
 
@@ -147,14 +164,27 @@ function ProductPage() {
           <textarea rows={3} placeholder="IBAN: ...\nUnitel Money: 9xx xxx xxx" value={form.payment_data}
             onChange={(e) => setForm({ ...form, payment_data: e.target.value })} className={field} />
         </div>
-        <button
-          type="submit"
-          disabled={saving || !loaded}
-          className="flex items-center gap-2 rounded-md bg-gradient-gold px-6 py-3 font-semibold text-primary-foreground shadow-gold hover:opacity-90 disabled:opacity-50 transition"
-        >
-          {hasProduct ? <Pencil className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-          {saving ? "A guardar..." : hasProduct ? "Atualizar Produto" : "Guardar Produto"}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="submit"
+            disabled={saving || !loaded}
+            className="flex items-center gap-2 rounded-md bg-gradient-gold px-6 py-3 font-semibold text-primary-foreground shadow-gold hover:opacity-90 disabled:opacity-50 transition"
+          >
+            {hasProduct ? <Pencil className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+            {saving ? "A guardar..." : hasProduct ? "Atualizar Produto" : "Guardar Produto"}
+          </button>
+          {hasProduct && (
+            <button
+              type="button"
+              onClick={remove}
+              disabled={saving}
+              className="flex items-center gap-2 rounded-md border border-destructive/40 px-6 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50 transition"
+            >
+              <Trash2 className="h-4 w-4" />
+              Eliminar Produto
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
