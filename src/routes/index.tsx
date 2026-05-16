@@ -14,12 +14,11 @@ function Landing() {
           <span className="font-display text-lg font-bold tracking-wide">Auto Vendas IA</span>
         </div>
         <nav className="flex items-center gap-3">
-          <Link to="/login" className="text-sm text-muted-foreground hover:text-primary transition">Entrar</Link>
           <Link
-            to="/login"
+            to="/dashboard"
             className="rounded-md bg-gradient-gold px-4 py-2 text-sm font-semibold text-primary-foreground shadow-gold hover:opacity-90 transition"
           >
-            Começar
+            Entrar
           </Link>
         </nav>
       </header>
@@ -36,10 +35,10 @@ function Landing() {
         </p>
         <div className="mt-10 flex justify-center gap-4">
           <Link
-            to="/login"
+            to="/dashboard"
             className="rounded-md bg-gradient-gold px-8 py-3 font-semibold text-primary-foreground shadow-gold hover:scale-[1.02] transition"
           >
-            Aceder ao Painel
+            Começar agora
           </Link>
         </div>
       </section>
