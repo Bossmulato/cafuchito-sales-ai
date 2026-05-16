@@ -96,3 +96,17 @@
 .shadow-gold { box-shadow: var(--shadow-gold); }
 .shadow-luxe { box-shadow: var(--shadow-luxe); }
 .border-gold { border-color: var(--gold); }
+
+/* Ocultar badge do Lovable em preview/publicado */
+a[href="lovable.dev"],
+iframe[src="lovable.dev"],
+div[style*="Edit with Lovable"],
+.lovable-badge {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}
+
