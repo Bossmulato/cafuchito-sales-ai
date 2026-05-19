@@ -56,8 +56,34 @@ ${p.payment_data}
 Regras:
 - Nunca invente informações que não estão acima.
 - Se perguntarem como pagar, partilhe os dados de pagamento.
+- Se o cliente pedir fotos, modelos ou cores, diga numa frase que vai enviar as imagens disponíveis (as fotos são enviadas automaticamente a seguir).
 - Se a pergunta não tiver resposta no FAQ, diga que vai verificar com a equipa.`;
 }
+
+// Detect if user is asking for product photos / models / colors
+export function wantsPhotos(text: string): boolean {
+  const t = text.toLowerCase();
+  return /(foto|fotos|imagem|imagens|ver o produto|mostrar|mostra|modelo|modelos|cor |cores|tamanho|tamanhos|disponiv|disponív)/i.test(t);
+}
+
+export async function sendWhatsAppImage(
+  instanceName: string,
+  number: string,
+  imageUrl: string,
+  caption?: string,
+): Promise<void> {
+  await evoFetch(`/message/sendMedia/${instanceName}`, {
+    method: "POST",
+    body: JSON.stringify({
+      number,
+      mediatype: "image",
+      media: imageUrl,
+      caption: caption ?? "",
+      fileName: "produto.jpg",
+    }),
+  });
+}
+
 
 export async function callGroq(
   system: string,

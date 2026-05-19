@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2 } from "lucide-react";
+import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2, ImagePlus, X, Image as ImageIcon } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/")({
   component: ProductPage,
@@ -21,12 +21,16 @@ type Product = {
 
 const empty: Product = { name: "", description: "", price_kz: 0, benefits: "", faq: "", payment_data: "" };
 
+type ProductImage = { id: string; image_url: string; storage_path: string | null; label: string; sort_order: number };
+
 function ProductPage() {
   const { user } = useAuth();
   const [form, setForm] = useState<Product>(empty);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -37,14 +41,67 @@ function ProductPage() {
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (data) {
           setForm(data as Product);
           setLastSaved((data as any).updated_at ?? null);
+          const { data: imgs } = await supabase
+            .from("product_images").select("*")
+            .eq("product_id", (data as any).id)
+            .order("sort_order", { ascending: true });
+          setImages((imgs as ProductImage[]) ?? []);
         }
         setLoaded(true);
       });
   }, [user]);
+
+  const uploadImages = async (files: FileList | null) => {
+    if (!files || !user || !form.id) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${form.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("product-images")
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
+        const { data: row, error: insErr } = await supabase.from("product_images").insert({
+          product_id: form.id,
+          user_id: user.id,
+          image_url: pub.publicUrl,
+          storage_path: path,
+          label: "",
+          sort_order: images.length,
+        }).select().single();
+        if (insErr) throw insErr;
+        setImages((prev) => [...prev, row as ProductImage]);
+      }
+      toast.success("Fotos carregadas!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = async (img: ProductImage) => {
+    try {
+      if (img.storage_path) {
+        await supabase.storage.from("product-images").remove([img.storage_path]);
+      }
+      await supabase.from("product_images").delete().eq("id", img.id);
+      setImages((prev) => prev.filter((i) => i.id !== img.id));
+      toast.success("Foto removida");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao remover");
+    }
+  };
+
+  const updateImageLabel = async (id: string, label: string) => {
+    setImages((prev) => prev.map((i) => (i.id === id ? { ...i, label } : i)));
+    await supabase.from("product_images").update({ label }).eq("id", id);
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,6 +221,63 @@ function ProductPage() {
           <textarea rows={3} placeholder="IBAN: ...\nUnitel Money: 9xx xxx xxx" value={form.payment_data}
             onChange={(e) => setForm({ ...form, payment_data: e.target.value })} className={field} />
         </div>
+
+        {hasProduct && (
+          <div className="rounded-xl border border-gold/30 bg-background/40 p-5">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  Fotos do produto ({images.length})
+                </h3>
+              </div>
+              <label className="flex cursor-pointer items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/20 transition">
+                <ImagePlus className="h-4 w-4" />
+                {uploading ? "A carregar..." : "Adicionar fotos"}
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => { uploadImages(e.target.files); e.target.value = ""; }}
+                />
+              </label>
+            </div>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Quando o cliente pedir <span className="font-medium text-foreground">fotos, modelos ou cores</span>, o bot envia automaticamente estas imagens. Use a legenda para identificar cor/modelo.
+            </p>
+            {images.length === 0 ? (
+              <div className="rounded-md border border-dashed border-gold/30 p-6 text-center text-sm text-muted-foreground">
+                Sem fotos. Adicione imagens para o bot mostrar ao cliente.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {images.map((img) => (
+                  <div key={img.id} className="group relative overflow-hidden rounded-lg border border-gold/30 bg-card/40">
+                    <img src={img.image_url} alt={img.label || "produto"} className="aspect-square w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(img)}
+                      className="absolute right-1 top-1 rounded-full bg-destructive/90 p-1 text-destructive-foreground opacity-0 transition group-hover:opacity-100"
+                      title="Remover"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                    <input
+                      type="text"
+                      placeholder="Ex: Cor preta, Modelo XL"
+                      defaultValue={img.label}
+                      onBlur={(e) => updateImageLabel(img.id, e.target.value)}
+                      className="w-full border-t border-gold/20 bg-input/40 px-2 py-1.5 text-xs text-foreground outline-none focus:border-primary"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"

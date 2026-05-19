@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { evoFetch, callGroq, buildSystemPrompt, type ProductData } from "@/lib/bot.server";
+import { evoFetch, callGroq, buildSystemPrompt, wantsPhotos, sendWhatsAppImage, type ProductData } from "@/lib/bot.server";
 
 type WebhookPayload = {
   event?: string;
@@ -118,6 +118,24 @@ export const Route = createFileRoute("/api/public/whatsapp/webhook")({
           });
         } catch (err) {
           console.error("Evolution send error", err);
+        }
+
+        // If customer asked for photos/models/colors, send product images
+        if (wantsPhotos(text)) {
+          const { data: imgs } = await supabaseAdmin
+            .from("product_images")
+            .select("image_url, label")
+            .eq("product_id", (product as { id: string }).id)
+            .order("sort_order", { ascending: true })
+            .limit(6);
+          for (const img of imgs ?? []) {
+            try {
+              await sendWhatsAppImage(instanceName, phone, img.image_url as string, (img.label as string) || undefined);
+              await new Promise((r) => setTimeout(r, 600));
+            } catch (err) {
+              console.error("Evolution send image error", err);
+            }
+          }
         }
 
         return new Response("ok");
