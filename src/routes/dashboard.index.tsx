@@ -41,14 +41,67 @@ function ProductPage() {
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (data) {
           setForm(data as Product);
           setLastSaved((data as any).updated_at ?? null);
+          const { data: imgs } = await supabase
+            .from("product_images").select("*")
+            .eq("product_id", (data as any).id)
+            .order("sort_order", { ascending: true });
+          setImages((imgs as ProductImage[]) ?? []);
         }
         setLoaded(true);
       });
   }, [user]);
+
+  const uploadImages = async (files: FileList | null) => {
+    if (!files || !user || !form.id) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${form.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("product-images")
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
+        const { data: row, error: insErr } = await supabase.from("product_images").insert({
+          product_id: form.id,
+          user_id: user.id,
+          image_url: pub.publicUrl,
+          storage_path: path,
+          label: "",
+          sort_order: images.length,
+        }).select().single();
+        if (insErr) throw insErr;
+        setImages((prev) => [...prev, row as ProductImage]);
+      }
+      toast.success("Fotos carregadas!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = async (img: ProductImage) => {
+    try {
+      if (img.storage_path) {
+        await supabase.storage.from("product-images").remove([img.storage_path]);
+      }
+      await supabase.from("product_images").delete().eq("id", img.id);
+      setImages((prev) => prev.filter((i) => i.id !== img.id));
+      toast.success("Foto removida");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao remover");
+    }
+  };
+
+  const updateImageLabel = async (id: string, label: string) => {
+    setImages((prev) => prev.map((i) => (i.id === id ? { ...i, label } : i)));
+    await supabase.from("product_images").update({ label }).eq("id", id);
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
