@@ -21,12 +21,16 @@ type Product = {
 
 const empty: Product = { name: "", description: "", price_kz: 0, benefits: "", faq: "", payment_data: "" };
 
+type ProductImage = { id: string; image_url: string; storage_path: string | null; label: string; sort_order: number };
+
 function ProductPage() {
   const { user } = useAuth();
   const [form, setForm] = useState<Product>(empty);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
