@@ -222,61 +222,70 @@ function ProductPage() {
             onChange={(e) => setForm({ ...form, payment_data: e.target.value })} className={field} />
         </div>
 
-        {hasProduct && (
-          <div className="rounded-xl border border-gold/30 bg-background/40 p-5">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                  Fotos do produto ({images.length})
-                </h3>
-              </div>
-              <label className="flex cursor-pointer items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-medium text-primary hover:bg-primary/20 transition">
-                <ImagePlus className="h-4 w-4" />
-                {uploading ? "A carregar..." : "Adicionar fotos"}
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploading}
-                  onChange={(e) => { uploadImages(e.target.files); e.target.value = ""; }}
-                />
-              </label>
+        <div className="rounded-xl border border-gold/30 bg-background/40 p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Fotos do produto ({images.length})
+              </h3>
             </div>
-            <p className="mb-3 text-xs text-muted-foreground">
-              Quando o cliente pedir <span className="font-medium text-foreground">fotos, modelos ou cores</span>, o bot envia automaticamente estas imagens. Use a legenda para identificar cor/modelo.
-            </p>
-            {images.length === 0 ? (
-              <div className="rounded-md border border-dashed border-gold/30 p-6 text-center text-sm text-muted-foreground">
-                Sem fotos. Adicione imagens para o bot mostrar ao cliente.
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {images.map((img) => (
-                  <div key={img.id} className="group relative overflow-hidden rounded-lg border border-gold/30 bg-card/40">
-                    <img src={img.image_url} alt={img.label || "produto"} className="aspect-square w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(img)}
-                      className="absolute right-1 top-1 rounded-full bg-destructive/90 p-1 text-destructive-foreground opacity-0 transition group-hover:opacity-100"
-                      title="Remover"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                    <input
-                      type="text"
-                      placeholder="Ex: Cor preta, Modelo XL"
-                      defaultValue={img.label}
-                      onBlur={(e) => updateImageLabel(img.id, e.target.value)}
-                      className="w-full border-t border-gold/20 bg-input/40 px-2 py-1.5 text-xs text-foreground outline-none focus:border-primary"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <label
+              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition ${
+                hasProduct
+                  ? "cursor-pointer border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                  : "cursor-not-allowed border-muted-foreground/20 bg-muted/20 text-muted-foreground"
+              }`}
+            >
+              <ImagePlus className="h-4 w-4" />
+              {uploading ? "A carregar..." : "Adicionar fotos"}
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                disabled={uploading || !hasProduct}
+                onChange={(e) => { uploadImages(e.target.files); e.target.value = ""; }}
+              />
+            </label>
           </div>
-        )}
+          <p className="mb-3 text-xs text-muted-foreground">
+            Quando o cliente pedir <span className="font-medium text-foreground">fotos, modelos ou cores</span>, o bot envia automaticamente estas imagens. Use a legenda para identificar cor/modelo.
+          </p>
+          {!hasProduct ? (
+            <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-6 text-center text-sm text-foreground">
+              👉 Guarde primeiro o produto (botão abaixo) para poder carregar as fotos.
+            </div>
+          ) : images.length === 0 ? (
+            <div className="rounded-md border border-dashed border-gold/30 p-6 text-center text-sm text-muted-foreground">
+              Sem fotos. Clique em <span className="font-medium text-foreground">"Adicionar fotos"</span> para o bot mostrar ao cliente.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {images.map((img) => (
+                <div key={img.id} className="group relative overflow-hidden rounded-lg border border-gold/30 bg-card/40">
+                  <img src={img.image_url} alt={img.label || "produto"} className="aspect-square w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(img)}
+                    className="absolute right-1 top-1 rounded-full bg-destructive/90 p-1 text-destructive-foreground opacity-0 transition group-hover:opacity-100"
+                    title="Remover"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  <input
+                    type="text"
+                    placeholder="Ex: Cor preta, Modelo XL"
+                    defaultValue={img.label}
+                    onBlur={(e) => updateImageLabel(img.id, e.target.value)}
+                    className="w-full border-t border-gold/20 bg-input/40 px-2 py-1.5 text-xs text-foreground outline-none focus:border-primary"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
 
         <div className="flex flex-wrap items-center gap-3">
           <button
