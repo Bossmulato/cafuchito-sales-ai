@@ -14,7 +14,7 @@ function DashboardLayout() {
   const location = useLocation();
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/login" });
+    // auto-login no useAuth garante sessão; nada a fazer aqui
   }, [loading, session, navigate]);
 
   if (loading || !session) {
@@ -52,16 +52,6 @@ function DashboardLayout() {
             );
           })}
         </nav>
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            navigate({ to: "/login" });
-          }}
-          className="mt-10 flex w-full items-center gap-2 rounded-md border border-gold/20 px-3 py-2 text-sm text-muted-foreground hover:text-primary transition"
-        >
-          <LogOut className="h-4 w-4" />
-          Sair
-        </button>
       </aside>
 
       <main className="flex-1 px-6 py-10 md:px-12">
