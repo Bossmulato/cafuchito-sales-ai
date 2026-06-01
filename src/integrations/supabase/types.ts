@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_training: {
+        Row: {
+          custom_responses: string
+          objections: string
+          rules: string
+          tone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          custom_responses?: string
+          objections?: string
+          rules?: string
+          tone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          custom_responses?: string
+          objections?: string
+          rules?: string
+          tone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bot_conversations: {
         Row: {
           contact_phone: string
@@ -37,6 +64,78 @@ export type Database = {
           created_at?: string
           id?: string
           role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      customer_status: {
+        Row: {
+          contact_name: string
+          contact_phone: string
+          id: string
+          notes: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_name?: string
+          contact_phone: string
+          id?: string
+          notes?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_name?: string
+          contact_phone?: string
+          id?: string
+          notes?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          amount_kz: number
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          id: string
+          notes: string
+          product_id: string | null
+          product_name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_kz?: number
+          contact_name?: string
+          contact_phone: string
+          created_at?: string
+          id?: string
+          notes?: string
+          product_id?: string | null
+          product_name?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_kz?: number
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          id?: string
+          notes?: string
+          product_id?: string | null
+          product_name?: string
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -85,6 +184,7 @@ export type Database = {
       products: {
         Row: {
           benefits: string
+          category: string
           created_at: string
           description: string
           faq: string
@@ -92,11 +192,15 @@ export type Database = {
           name: string
           payment_data: string
           price_kz: number
+          sku: string
+          stock: number
           updated_at: string
           user_id: string
+          video_url: string
         }
         Insert: {
           benefits?: string
+          category?: string
           created_at?: string
           description?: string
           faq?: string
@@ -104,11 +208,15 @@ export type Database = {
           name: string
           payment_data?: string
           price_kz?: number
+          sku?: string
+          stock?: number
           updated_at?: string
           user_id: string
+          video_url?: string
         }
         Update: {
           benefits?: string
+          category?: string
           created_at?: string
           description?: string
           faq?: string
@@ -116,24 +224,39 @@ export type Database = {
           name?: string
           payment_data?: string
           price_kz?: number
+          sku?: string
+          stock?: number
           updated_at?: string
           user_id?: string
+          video_url?: string
         }
         Relationships: []
       }
       user_settings: {
         Row: {
+          business_name: string
+          currency: string
+          default_greeting: string
           groq_api_key: string
+          logo_url: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          business_name?: string
+          currency?: string
+          default_greeting?: string
           groq_api_key?: string
+          logo_url?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          business_name?: string
+          currency?: string
+          default_greeting?: string
           groq_api_key?: string
+          logo_url?: string
           updated_at?: string
           user_id?: string
         }

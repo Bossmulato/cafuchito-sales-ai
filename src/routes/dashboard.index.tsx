@@ -1,314 +1,226 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { toast } from "sonner";
-import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2, ImagePlus, X, Image as ImageIcon } from "lucide-react";
+import {
+  MessageSquare,
+  Users,
+  ShoppingBag,
+  TrendingUp,
+  Wallet,
+  Sparkles,
+  Loader2,
+  ArrowUpRight,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  BarChart,
+  Bar,
+} from "recharts";
 
 export const Route = createFileRoute("/dashboard/")({
-  component: ProductPage,
+  component: DashboardOverview,
 });
 
-type Product = {
-  id?: string;
-  name: string;
-  description: string;
-  price_kz: number;
-  benefits: string;
-  faq: string;
-  payment_data: string;
-};
+type Order = { amount_kz: number; status: string; created_at: string };
+type Conv = { contact_phone: string; role: string; created_at: string };
 
-const empty: Product = { name: "", description: "", price_kz: 0, benefits: "", faq: "", payment_data: "" };
+function formatKz(n: number) {
+  return new Intl.NumberFormat("pt-PT", { maximumFractionDigits: 0 }).format(n) + " Kz";
+}
 
-type ProductImage = { id: string; image_url: string; storage_path: string | null; label: string; sort_order: number };
+function lastNDays(n: number) {
+  const arr: { date: string; label: string }[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    arr.push({ date: key, label: d.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" }) });
+  }
+  return arr;
+}
 
-function ProductPage() {
+function DashboardOverview() {
   const { user } = useAuth();
-  const [form, setForm] = useState<Product>(empty);
-  const [saving, setSaving] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [lastSaved, setLastSaved] = useState<string | null>(null);
-  const [images, setImages] = useState<ProductImage[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [convs, setConvs] = useState<Conv[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("products")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(async ({ data }) => {
-        if (data) {
-          setForm(data as Product);
-          setLastSaved((data as any).updated_at ?? null);
-          const { data: imgs } = await supabase
-            .from("product_images").select("*")
-            .eq("product_id", (data as any).id)
-            .order("sort_order", { ascending: true });
-          setImages((imgs as ProductImage[]) ?? []);
-        }
-        setLoaded(true);
-      });
+    (async () => {
+      const since = new Date();
+      since.setDate(since.getDate() - 29);
+      const [{ data: o }, { data: c }] = await Promise.all([
+        supabase.from("orders").select("amount_kz,status,created_at").eq("user_id", user.id),
+        supabase
+          .from("bot_conversations")
+          .select("contact_phone,role,created_at")
+          .eq("user_id", user.id)
+          .gte("created_at", since.toISOString()),
+      ]);
+      setOrders((o as Order[]) ?? []);
+      setConvs((c as Conv[]) ?? []);
+      setLoading(false);
+    })();
   }, [user]);
 
-  const uploadImages = async (files: FileList | null) => {
-    if (!files || !user || !form.id) return;
-    setUploading(true);
-    try {
-      for (const file of Array.from(files)) {
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${user.id}/${form.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("product-images")
-          .upload(path, file, { contentType: file.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
-        const { data: row, error: insErr } = await supabase.from("product_images").insert({
-          product_id: form.id,
-          user_id: user.id,
-          image_url: pub.publicUrl,
-          storage_path: path,
-          label: "",
-          sort_order: images.length,
-        }).select().single();
-        if (insErr) throw insErr;
-        setImages((prev) => [...prev, row as ProductImage]);
-      }
-      toast.success("Fotos carregadas!");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro no upload");
-    } finally {
-      setUploading(false);
-    }
-  };
+  const kpis = useMemo(() => {
+    const paid = orders.filter((o) => o.status === "paid");
+    const revenue = paid.reduce((s, o) => s + Number(o.amount_kz || 0), 0);
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const monthly = paid
+      .filter((o) => new Date(o.created_at) >= monthStart)
+      .reduce((s, o) => s + Number(o.amount_kz || 0), 0);
+    const uniqueContacts = new Set(convs.map((c) => c.contact_phone)).size;
+    const totalMessages = convs.length;
+    const conversionRate = uniqueContacts > 0 ? (paid.length / uniqueContacts) * 100 : 0;
+    return {
+      revenue,
+      monthly,
+      paidCount: paid.length,
+      uniqueContacts,
+      totalMessages,
+      conversionRate,
+    };
+  }, [orders, convs]);
 
-  const removeImage = async (img: ProductImage) => {
-    try {
-      if (img.storage_path) {
-        await supabase.storage.from("product-images").remove([img.storage_path]);
-      }
-      await supabase.from("product_images").delete().eq("id", img.id);
-      setImages((prev) => prev.filter((i) => i.id !== img.id));
-      toast.success("Foto removida");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao remover");
-    }
-  };
+  const chartData = useMemo(() => {
+    const days = lastNDays(14);
+    return days.map((d) => {
+      const sales = orders
+        .filter((o) => o.status === "paid" && o.created_at.startsWith(d.date))
+        .reduce((s, o) => s + Number(o.amount_kz || 0), 0);
+      const messages = convs.filter((c) => c.created_at.startsWith(d.date)).length;
+      return { label: d.label, vendas: sales, mensagens: messages };
+    });
+  }, [orders, convs]);
 
-  const updateImageLabel = async (id: string, label: string) => {
-    setImages((prev) => prev.map((i) => (i.id === id ? { ...i, label } : i)));
-    await supabase.from("product_images").update({ label }).eq("id", id);
-  };
+  if (loading) {
+    return (
+      <div className="flex h-[40vh] items-center justify-center gap-2 text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" /> A carregar métricas...
+      </div>
+    );
+  }
 
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    setSaving(true);
-    try {
-      if (form.id) {
-        const { error } = await supabase.from("products").update({
-          name: form.name,
-          description: form.description,
-          price_kz: form.price_kz,
-          benefits: form.benefits,
-          faq: form.faq,
-          payment_data: form.payment_data,
-        }).eq("id", form.id);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase.from("products").insert({
-          user_id: user.id,
-          name: form.name,
-          description: form.description,
-          price_kz: form.price_kz,
-          benefits: form.benefits,
-          faq: form.faq,
-          payment_data: form.payment_data,
-        }).select().single();
-        if (error) throw error;
-        if (data) {
-          setForm(data as Product);
-          setLastSaved((data as any).updated_at ?? null);
-        }
-      }
-      toast.success("Produto guardado com sucesso!");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao guardar");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const remove = async () => {
-    if (!user || !form.id) return;
-    if (!window.confirm("Tem a certeza que quer eliminar o produto? Esta ação não pode ser desfeita.")) return;
-    setSaving(true);
-    try {
-      const { error } = await supabase.from("products").delete().eq("id", form.id);
-      if (error) throw error;
-      setForm(empty);
-      setLastSaved(null);
-      toast.success("Produto eliminado com sucesso!");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao eliminar");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const field = "w-full rounded-md border border-gold/30 bg-input/40 px-4 py-3 text-foreground outline-none focus:border-primary";
-  const hasProduct = !!form.id;
+  const cards = [
+    { label: "Receita Total", value: formatKz(kpis.revenue), icon: Wallet, hint: "Pedidos pagos" },
+    { label: "Receita do Mês", value: formatKz(kpis.monthly), icon: TrendingUp, hint: "Mês corrente" },
+    { label: "Pedidos Pagos", value: String(kpis.paidCount), icon: ShoppingBag, hint: "Total acumulado" },
+    { label: "Clientes Únicos", value: String(kpis.uniqueContacts), icon: Users, hint: "Últimos 30 dias" },
+    { label: "Mensagens", value: String(kpis.totalMessages), icon: MessageSquare, hint: "Últimos 30 dias" },
+    {
+      label: "Taxa de Conversão",
+      value: `${kpis.conversionRate.toFixed(1)}%`,
+      icon: Sparkles,
+      hint: "Pagos / contactos",
+    },
+  ];
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-8 flex items-center gap-3">
-        <Package className="h-6 w-6 text-primary" />
+    <div className="mx-auto max-w-7xl space-y-8">
+      <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gradient-gold">
-            {hasProduct ? "Editar Produto" : "Configuração do Produto"}
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Visão geral</h1>
           <p className="text-sm text-muted-foreground">
-            {hasProduct
-              ? "Altere os dados do seu produto e o bot atualiza automaticamente."
-              : "Estes dados alimentam o bot de vendas."}
+            Tudo o que está a acontecer com o seu bot de vendas em tempo real.
           </p>
         </div>
-      </div>
+        <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+          Atualizado agora
+        </div>
+      </header>
 
-      {hasProduct && (
-        <div className="mb-6 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/10 p-4">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-          <div className="text-sm text-foreground">
-            <p className="font-semibold">Produto configurado</p>
-            <p className="text-muted-foreground">
-              {lastSaved
-                ? `Última atualização: ${new Date(lastSaved).toLocaleString("pt-PT")}`
-                : "Pode editar os campos abaixo e guardar as alterações."}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <form onSubmit={save} className="space-y-5 rounded-2xl border border-gold/30 bg-card/70 p-8 shadow-luxe">
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Nome do Produto</label>
-          <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Descrição</label>
-          <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Preço (Kz)</label>
-          <input type="number" min={0} step="0.01" value={form.price_kz}
-            onChange={(e) => setForm({ ...form, price_kz: Number(e.target.value) })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Benefícios</label>
-          <textarea rows={3} placeholder="• Entrega rápida..." value={form.benefits}
-            onChange={(e) => setForm({ ...form, benefits: e.target.value })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">FAQ</label>
-          <textarea rows={4} placeholder="P: ...\nR: ..." value={form.faq}
-            onChange={(e) => setForm({ ...form, faq: e.target.value })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Dados de Pagamento (Multicaixa / Unitel Money)</label>
-          <textarea rows={3} placeholder="IBAN: ...\nUnitel Money: 9xx xxx xxx" value={form.payment_data}
-            onChange={(e) => setForm({ ...form, payment_data: e.target.value })} className={field} />
-        </div>
-
-        <div className="rounded-xl border border-gold/30 bg-background/40 p-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Fotos do produto ({images.length})
-              </h3>
-            </div>
-            <label
-              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition ${
-                hasProduct
-                  ? "cursor-pointer border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
-                  : "cursor-not-allowed border-muted-foreground/20 bg-muted/20 text-muted-foreground"
-              }`}
-            >
-              <ImagePlus className="h-4 w-4" />
-              {uploading ? "A carregar..." : "Adicionar fotos"}
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                disabled={uploading || !hasProduct}
-                onChange={(e) => { uploadImages(e.target.files); e.target.value = ""; }}
-              />
-            </label>
-          </div>
-          <p className="mb-3 text-xs text-muted-foreground">
-            Quando o cliente pedir <span className="font-medium text-foreground">fotos, modelos ou cores</span>, o bot envia automaticamente estas imagens. Use a legenda para identificar cor/modelo.
-          </p>
-          {!hasProduct ? (
-            <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-6 text-center text-sm text-foreground">
-              👉 Guarde primeiro o produto (botão abaixo) para poder carregar as fotos.
-            </div>
-          ) : images.length === 0 ? (
-            <div className="rounded-md border border-dashed border-gold/30 p-6 text-center text-sm text-muted-foreground">
-              Sem fotos. Clique em <span className="font-medium text-foreground">"Adicionar fotos"</span> para o bot mostrar ao cliente.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {images.map((img) => (
-                <div key={img.id} className="group relative overflow-hidden rounded-lg border border-gold/30 bg-card/40">
-                  <img src={img.image_url} alt={img.label || "produto"} className="aspect-square w-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(img)}
-                    className="absolute right-1 top-1 rounded-full bg-destructive/90 p-1 text-destructive-foreground opacity-0 transition group-hover:opacity-100"
-                    title="Remover"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                  <input
-                    type="text"
-                    placeholder="Ex: Cor preta, Modelo XL"
-                    defaultValue={img.label}
-                    onBlur={(e) => updateImageLabel(img.id, e.target.value)}
-                    className="w-full border-t border-gold/20 bg-input/40 px-2 py-1.5 text-xs text-foreground outline-none focus:border-primary"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={saving || !loaded}
-            className="flex items-center gap-2 rounded-md bg-gradient-gold px-6 py-3 font-semibold text-primary-foreground shadow-gold hover:opacity-90 disabled:opacity-50 transition"
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((c) => (
+          <div
+            key={c.label}
+            className="group relative overflow-hidden rounded-2xl border border-primary/10 bg-card/60 p-5 backdrop-blur-xl transition hover:border-primary/30 hover:shadow-gold"
           >
-            {hasProduct ? <Pencil className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-            {saving ? "A guardar..." : hasProduct ? "Atualizar Produto" : "Guardar Produto"}
-          </button>
-          {hasProduct && (
-            <button
-              type="button"
-              onClick={remove}
-              disabled={saving}
-              className="flex items-center gap-2 rounded-md border border-destructive/40 px-6 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50 transition"
-            >
-              <Trash2 className="h-4 w-4" />
-              Eliminar Produto
-            </button>
-          )}
+            <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary/10 blur-2xl transition group-hover:bg-primary/20" />
+            <div className="relative flex items-center justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <c.icon className="h-5 w-5" />
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
+            </div>
+            <div className="relative mt-4">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">{c.label}</p>
+              <p className="mt-1 font-display text-2xl font-bold">{c.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{c.hint}</p>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-primary/10 bg-card/60 p-6 backdrop-blur-xl">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold">Vendas (14 dias)</h3>
+              <p className="text-xs text-muted-foreground">Receita diária dos pedidos pagos</p>
+            </div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="gVendas" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="oklch(0.78 0.16 165)" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="oklch(0.78 0.16 165)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.78 0.16 165 / 0.12)" />
+                <XAxis dataKey="label" stroke="oklch(0.7 0.02 170)" fontSize={11} />
+                <YAxis stroke="oklch(0.7 0.02 170)" fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    background: "oklch(0.17 0.02 165)",
+                    border: "1px solid oklch(0.78 0.16 165 / 0.3)",
+                    borderRadius: 8,
+                  }}
+                />
+                <Area type="monotone" dataKey="vendas" stroke="oklch(0.78 0.16 165)" strokeWidth={2} fill="url(#gVendas)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </form>
+
+        <div className="rounded-2xl border border-primary/10 bg-card/60 p-6 backdrop-blur-xl">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold">Mensagens (14 dias)</h3>
+              <p className="text-xs text-muted-foreground">Volume diário no WhatsApp</p>
+            </div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.78 0.16 165 / 0.12)" />
+                <XAxis dataKey="label" stroke="oklch(0.7 0.02 170)" fontSize={11} />
+                <YAxis stroke="oklch(0.7 0.02 170)" fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    background: "oklch(0.17 0.02 165)",
+                    border: "1px solid oklch(0.78 0.16 165 / 0.3)",
+                    borderRadius: 8,
+                  }}
+                />
+                <Bar dataKey="mensagens" fill="oklch(0.78 0.16 165)" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
