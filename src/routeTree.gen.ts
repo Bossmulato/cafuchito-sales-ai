@@ -14,6 +14,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardProdutoRouteImport } from './routes/dashboard.produto'
+import { Route as DashboardPedidosRouteImport } from './routes/dashboard.pedidos'
+import { Route as DashboardIaRouteImport } from './routes/dashboard.ia'
+import { Route as DashboardConfigRouteImport } from './routes/dashboard.config'
+import { Route as DashboardClientesRouteImport } from './routes/dashboard.clientes'
+import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -41,6 +46,31 @@ const DashboardProdutoRoute = DashboardProdutoRouteImport.update({
   path: '/produto',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardPedidosRoute = DashboardPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardIaRoute = DashboardIaRouteImport.update({
+  id: '/ia',
+  path: '/ia',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardConfigRoute = DashboardConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardClientesRoute = DashboardClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const ApiPublicWhatsappWebhookRoute =
   ApiPublicWhatsappWebhookRouteImport.update({
     id: '/api/public/whatsapp/webhook',
@@ -51,6 +81,11 @@ const ApiPublicWhatsappWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/clientes': typeof DashboardClientesRoute
+  '/dashboard/config': typeof DashboardConfigRoute
+  '/dashboard/ia': typeof DashboardIaRoute
+  '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -58,6 +93,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/clientes': typeof DashboardClientesRoute
+  '/dashboard/config': typeof DashboardConfigRoute
+  '/dashboard/ia': typeof DashboardIaRoute
+  '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -67,6 +107,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/clientes': typeof DashboardClientesRoute
+  '/dashboard/config': typeof DashboardConfigRoute
+  '/dashboard/ia': typeof DashboardIaRoute
+  '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -77,6 +122,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/dashboard/analytics'
+    | '/dashboard/clientes'
+    | '/dashboard/config'
+    | '/dashboard/ia'
+    | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard/'
@@ -84,6 +134,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dashboard/analytics'
+    | '/dashboard/clientes'
+    | '/dashboard/config'
+    | '/dashboard/ia'
+    | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard'
@@ -92,6 +147,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/dashboard/analytics'
+    | '/dashboard/clientes'
+    | '/dashboard/config'
+    | '/dashboard/ia'
+    | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard/'
@@ -141,6 +201,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProdutoRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/pedidos': {
+      id: '/dashboard/pedidos'
+      path: '/pedidos'
+      fullPath: '/dashboard/pedidos'
+      preLoaderRoute: typeof DashboardPedidosRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/ia': {
+      id: '/dashboard/ia'
+      path: '/ia'
+      fullPath: '/dashboard/ia'
+      preLoaderRoute: typeof DashboardIaRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/config': {
+      id: '/dashboard/config'
+      path: '/config'
+      fullPath: '/dashboard/config'
+      preLoaderRoute: typeof DashboardConfigRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/clientes': {
+      id: '/dashboard/clientes'
+      path: '/clientes'
+      fullPath: '/dashboard/clientes'
+      preLoaderRoute: typeof DashboardClientesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/analytics': {
+      id: '/dashboard/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/analytics'
+      preLoaderRoute: typeof DashboardAnalyticsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/api/public/whatsapp/webhook': {
       id: '/api/public/whatsapp/webhook'
       path: '/api/public/whatsapp/webhook'
@@ -152,12 +247,22 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardClientesRoute: typeof DashboardClientesRoute
+  DashboardConfigRoute: typeof DashboardConfigRoute
+  DashboardIaRoute: typeof DashboardIaRoute
+  DashboardPedidosRoute: typeof DashboardPedidosRoute
   DashboardProdutoRoute: typeof DashboardProdutoRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardClientesRoute: DashboardClientesRoute,
+  DashboardConfigRoute: DashboardConfigRoute,
+  DashboardIaRoute: DashboardIaRoute,
+  DashboardPedidosRoute: DashboardPedidosRoute,
   DashboardProdutoRoute: DashboardProdutoRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -175,3 +280,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
