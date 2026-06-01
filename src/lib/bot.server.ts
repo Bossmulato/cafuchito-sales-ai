@@ -38,8 +38,21 @@ export type ProductData = {
   payment_data: string;
 };
 
-export function buildSystemPrompt(p: ProductData): string {
-  return `Você é o assistente virtual da Auto Vendas IA no WhatsApp. Apresente-se como "assistente da Auto Vendas IA" quando perguntado. Responda em português de Angola, de forma cordial, persuasiva e curta (3-6 linhas). Use emojis com moderação. Feche a venda guiando o cliente para o pagamento.
+export type TrainingData = {
+  tone?: string;
+  rules?: string;
+  objections?: string;
+  custom_responses?: string;
+};
+
+export function buildSystemPrompt(p: ProductData, t?: TrainingData, businessName?: string): string {
+  const brand = businessName?.trim() || "Auto Vendas IA";
+  const tone = t?.tone?.trim() || "cordial, persuasivo e curto (3-6 linhas), em português de Angola";
+  const rules = t?.rules?.trim() || "";
+  const objections = t?.objections?.trim() || "";
+  const custom = t?.custom_responses?.trim() || "";
+
+  return `Você é o assistente virtual da ${brand} no WhatsApp. Apresente-se como "assistente da ${brand}" quando perguntado. Tom de voz: ${tone}. Use emojis com moderação. Feche a venda guiando o cliente para o pagamento.
 
 PRODUTO: ${p.name}
 DESCRIÇÃO: ${p.description}
@@ -52,12 +65,15 @@ ${p.faq}
 
 DADOS DE PAGAMENTO (Multicaixa/Unitel Money):
 ${p.payment_data}
+${rules ? `\nREGRAS DE ATENDIMENTO:\n${rules}` : ""}
+${objections ? `\nOBJEÇÕES COMUNS E COMO RESPONDER:\n${objections}` : ""}
+${custom ? `\nRESPOSTAS PERSONALIZADAS:\n${custom}` : ""}
 
-Regras:
+Regras gerais:
 - Nunca invente informações que não estão acima.
 - Se perguntarem como pagar, partilhe os dados de pagamento.
 - Se o cliente pedir fotos, modelos ou cores, diga numa frase que vai enviar as imagens disponíveis (as fotos são enviadas automaticamente a seguir).
-- Se a pergunta não tiver resposta no FAQ, diga que vai verificar com a equipa.`;
+- Se a pergunta não tiver resposta no FAQ ou respostas personalizadas, diga que vai verificar com a equipa.`;
 }
 
 // Detect if user is asking for product photos / models / colors
