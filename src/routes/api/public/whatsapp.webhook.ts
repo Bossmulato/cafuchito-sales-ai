@@ -73,10 +73,15 @@ export const Route = createFileRoute("/api/public/whatsapp/webhook")({
 
         const phone = remoteJid.split("@")[0];
 
-        // Load product
-        const { data: product } = await supabaseAdmin
-          .from("products").select("*").eq("user_id", userId)
-          .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+        // Load product, training and business name in parallel
+        const [{ data: product }, { data: training }, { data: settings }] = await Promise.all([
+          supabaseAdmin.from("products").select("*").eq("user_id", userId)
+            .order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+          supabaseAdmin.from("ai_training").select("tone,rules,objections,custom_responses")
+            .eq("user_id", userId).maybeSingle(),
+          supabaseAdmin.from("user_settings").select("business_name")
+            .eq("user_id", userId).maybeSingle(),
+        ]);
         if (!product) return new Response("ok");
 
         // Load history
@@ -98,7 +103,14 @@ export const Route = createFileRoute("/api/public/whatsapp/webhook")({
 
         let reply: string;
         try {
-          reply = await callGroq(buildSystemPrompt(product as ProductData), messages);
+          reply = await callGroq(
+            buildSystemPrompt(
+              product as ProductData,
+              training ?? undefined,
+              (settings as { business_name?: string } | null)?.business_name,
+            ),
+            messages,
+          );
         } catch (err) {
           console.error("Groq error", err);
           return new Response("ok");
