@@ -147,7 +147,11 @@ function ProductPage() {
           setLastSaved((data as any).updated_at ?? null);
         }
       }
-      toast.success("Produto guardado com sucesso!");
+      const { error: tErr } = await supabase
+        .from("ai_training")
+        .upsert({ user_id: user.id, ...training }, { onConflict: "user_id" });
+      if (tErr) throw tErr;
+      toast.success("Produto e treino da IA guardados!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao guardar");
     } finally {
