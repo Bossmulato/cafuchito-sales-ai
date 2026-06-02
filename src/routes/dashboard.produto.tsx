@@ -185,12 +185,10 @@ function ProductPage() {
         <Package className="h-6 w-6 text-primary" />
         <div>
           <h1 className="text-3xl font-bold text-gradient-gold">
-            {hasProduct ? "Editar Produto" : "Configuração do Produto"}
+            {hasProduct ? "Produto & Treino da IA" : "Configurar Produto & IA"}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {hasProduct
-              ? "Altere os dados do seu produto e o bot atualiza automaticamente."
-              : "Estes dados alimentam o bot de vendas."}
+            Configure o produto e personalize como a IA conversa com os seus clientes.
           </p>
         </div>
       </div>
