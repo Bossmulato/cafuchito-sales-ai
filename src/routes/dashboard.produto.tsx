@@ -217,7 +217,7 @@ function ProductPage() {
           <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={field} />
         </div>
         <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Preço (Kz)</label>
+          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Preço</label>
           <input type="number" min={0} step="0.01" value={form.price_kz}
             onChange={(e) => setForm({ ...form, price_kz: Number(e.target.value) })} className={field} />
         </div>
@@ -228,12 +228,12 @@ function ProductPage() {
         </div>
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">FAQ</label>
-          <textarea rows={4} placeholder="P: ...\nR: ..." value={form.faq}
+          <textarea rows={4} placeholder={"P: ...\nR: ..."} value={form.faq}
             onChange={(e) => setForm({ ...form, faq: e.target.value })} className={field} />
         </div>
         <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Dados de Pagamento (Multicaixa / Unitel Money)</label>
-          <textarea rows={3} placeholder="IBAN: ...\nUnitel Money: 9xx xxx xxx" value={form.payment_data}
+          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Dados de Pagamento</label>
+          <textarea rows={3} placeholder={"Métodos aceites, IBAN, links, instruções..."} value={form.payment_data}
             onChange={(e) => setForm({ ...form, payment_data: e.target.value })} className={field} />
         </div>
 
