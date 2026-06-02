@@ -116,8 +116,6 @@ function DashboardOverview() {
     { label: "Receita Total", value: formatKz(kpis.revenue), icon: Wallet, hint: "Pedidos pagos" },
     { label: "Receita do Mês", value: formatKz(kpis.monthly), icon: TrendingUp, hint: "Mês corrente" },
     { label: "Pedidos Pagos", value: String(kpis.paidCount), icon: ShoppingBag, hint: "Total acumulado" },
-    { label: "Clientes Únicos", value: String(kpis.uniqueContacts), icon: Users, hint: "Últimos 30 dias" },
-    { label: "Mensagens", value: String(kpis.totalMessages), icon: MessageSquare, hint: "Últimos 30 dias" },
     {
       label: "Taxa de Conversão",
       value: `${kpis.conversionRate.toFixed(1)}%`,
