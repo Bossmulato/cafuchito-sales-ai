@@ -301,6 +301,39 @@ function ProductPage() {
           )}
         </div>
 
+        <div className="rounded-xl border border-gold/30 bg-background/40 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Brain className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Treino da IA
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Ensine a IA a conversar como um humano da sua marca. Tudo é injetado no prompt.
+          </p>
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Tom de voz</label>
+            <textarea rows={2} placeholder="Ex: amigável, próximo, conversacional, como um amigo a recomendar"
+              value={training.tone} onChange={(e) => setTraining({ ...training, tone: e.target.value })} className={field} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Regras de atendimento</label>
+            <textarea rows={3} placeholder={"Ex:\n- Nunca dar descontos sem autorização\n- Confirmar morada antes do envio"}
+              value={training.rules} onChange={(e) => setTraining({ ...training, rules: e.target.value })} className={field} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Objeções comuns</label>
+            <textarea rows={3} placeholder={"Ex:\n- 'Está caro' → reforçar valor\n- 'Vou pensar' → criar urgência"}
+              value={training.objections} onChange={(e) => setTraining({ ...training, objections: e.target.value })} className={field} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Respostas personalizadas</label>
+            <textarea rows={3} placeholder={"P: Fazem entrega ao domingo?\nR: Sim, com taxa adicional."}
+              value={training.custom_responses} onChange={(e) => setTraining({ ...training, custom_responses: e.target.value })} className={field} />
+          </div>
+        </div>
+
+
 
         <div className="flex flex-wrap items-center gap-3">
           <button
