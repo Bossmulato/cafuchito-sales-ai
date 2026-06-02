@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2, ImagePlus, X, Image as ImageIcon } from "lucide-react";
+import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2, ImagePlus, X, Image as ImageIcon, Brain } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/produto")({
   component: ProductPage,
@@ -19,13 +19,22 @@ type Product = {
   payment_data: string;
 };
 
+type Training = {
+  tone: string;
+  rules: string;
+  objections: string;
+  custom_responses: string;
+};
+
 const empty: Product = { name: "", description: "", price_kz: 0, benefits: "", faq: "", payment_data: "" };
+const emptyT: Training = { tone: "", rules: "", objections: "", custom_responses: "" };
 
 type ProductImage = { id: string; image_url: string; storage_path: string | null; label: string; sort_order: number };
 
 function ProductPage() {
   const { user } = useAuth();
   const [form, setForm] = useState<Product>(empty);
+  const [training, setTraining] = useState<Training>(emptyT);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
@@ -51,6 +60,10 @@ function ProductPage() {
             .order("sort_order", { ascending: true });
           setImages((imgs as ProductImage[]) ?? []);
         }
+        const { data: t } = await supabase
+          .from("ai_training").select("tone,rules,objections,custom_responses")
+          .eq("user_id", user.id).maybeSingle();
+        if (t) setTraining(t as Training);
         setLoaded(true);
       });
   }, [user]);
@@ -134,7 +147,11 @@ function ProductPage() {
           setLastSaved((data as any).updated_at ?? null);
         }
       }
-      toast.success("Produto guardado com sucesso!");
+      const { error: tErr } = await supabase
+        .from("ai_training")
+        .upsert({ user_id: user.id, ...training }, { onConflict: "user_id" });
+      if (tErr) throw tErr;
+      toast.success("Produto e treino da IA guardados!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao guardar");
     } finally {
@@ -168,12 +185,10 @@ function ProductPage() {
         <Package className="h-6 w-6 text-primary" />
         <div>
           <h1 className="text-3xl font-bold text-gradient-gold">
-            {hasProduct ? "Editar Produto" : "Configuração do Produto"}
+            {hasProduct ? "Produto & Treino da IA" : "Configurar Produto & IA"}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {hasProduct
-              ? "Altere os dados do seu produto e o bot atualiza automaticamente."
-              : "Estes dados alimentam o bot de vendas."}
+            Configure o produto e personalize como a IA conversa com os seus clientes.
           </p>
         </div>
       </div>
@@ -202,7 +217,7 @@ function ProductPage() {
           <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={field} />
         </div>
         <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Preço (Kz)</label>
+          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Preço</label>
           <input type="number" min={0} step="0.01" value={form.price_kz}
             onChange={(e) => setForm({ ...form, price_kz: Number(e.target.value) })} className={field} />
         </div>
@@ -213,12 +228,12 @@ function ProductPage() {
         </div>
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">FAQ</label>
-          <textarea rows={4} placeholder="P: ...\nR: ..." value={form.faq}
+          <textarea rows={4} placeholder={"P: ...\nR: ..."} value={form.faq}
             onChange={(e) => setForm({ ...form, faq: e.target.value })} className={field} />
         </div>
         <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Dados de Pagamento (Multicaixa / Unitel Money)</label>
-          <textarea rows={3} placeholder="IBAN: ...\nUnitel Money: 9xx xxx xxx" value={form.payment_data}
+          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Dados de Pagamento</label>
+          <textarea rows={3} placeholder={"Métodos aceites, IBAN, links, instruções..."} value={form.payment_data}
             onChange={(e) => setForm({ ...form, payment_data: e.target.value })} className={field} />
         </div>
 
@@ -286,6 +301,39 @@ function ProductPage() {
           )}
         </div>
 
+        <div className="rounded-xl border border-gold/30 bg-background/40 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Brain className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Treino da IA
+            </h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Ensine a IA a conversar como um humano da sua marca. Tudo é injetado no prompt.
+          </p>
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Tom de voz</label>
+            <textarea rows={2} placeholder="Ex: amigável, próximo, conversacional, como um amigo a recomendar"
+              value={training.tone} onChange={(e) => setTraining({ ...training, tone: e.target.value })} className={field} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Regras de atendimento</label>
+            <textarea rows={3} placeholder={"Ex:\n- Nunca dar descontos sem autorização\n- Confirmar morada antes do envio"}
+              value={training.rules} onChange={(e) => setTraining({ ...training, rules: e.target.value })} className={field} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Objeções comuns</label>
+            <textarea rows={3} placeholder={"Ex:\n- 'Está caro' → reforçar valor\n- 'Vou pensar' → criar urgência"}
+              value={training.objections} onChange={(e) => setTraining({ ...training, objections: e.target.value })} className={field} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Respostas personalizadas</label>
+            <textarea rows={3} placeholder={"P: Fazem entrega ao domingo?\nR: Sim, com taxa adicional."}
+              value={training.custom_responses} onChange={(e) => setTraining({ ...training, custom_responses: e.target.value })} className={field} />
+          </div>
+        </div>
+
+
 
         <div className="flex flex-wrap items-center gap-3">
           <button
@@ -294,7 +342,7 @@ function ProductPage() {
             className="flex items-center gap-2 rounded-md bg-gradient-gold px-6 py-3 font-semibold text-primary-foreground shadow-gold hover:opacity-90 disabled:opacity-50 transition"
           >
             {hasProduct ? <Pencil className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-            {saving ? "A guardar..." : hasProduct ? "Atualizar Produto" : "Guardar Produto"}
+            {saving ? "A guardar..." : hasProduct ? "Atualizar Produto & IA" : "Guardar Produto & IA"}
           </button>
           {hasProduct && (
             <button

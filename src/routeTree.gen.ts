@@ -15,7 +15,6 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardProdutoRouteImport } from './routes/dashboard.produto'
 import { Route as DashboardPedidosRouteImport } from './routes/dashboard.pedidos'
-import { Route as DashboardIaRouteImport } from './routes/dashboard.ia'
 import { Route as DashboardConfigRouteImport } from './routes/dashboard.config'
 import { Route as DashboardClientesRouteImport } from './routes/dashboard.clientes'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
@@ -51,11 +50,6 @@ const DashboardPedidosRoute = DashboardPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardIaRoute = DashboardIaRouteImport.update({
-  id: '/ia',
-  path: '/ia',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardConfigRoute = DashboardConfigRouteImport.update({
   id: '/config',
   path: '/config',
@@ -84,7 +78,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
-  '/dashboard/ia': typeof DashboardIaRoute
   '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -96,7 +89,6 @@ export interface FileRoutesByTo {
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
-  '/dashboard/ia': typeof DashboardIaRoute
   '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -110,7 +102,6 @@ export interface FileRoutesById {
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
-  '/dashboard/ia': typeof DashboardIaRoute
   '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -125,7 +116,6 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/clientes'
     | '/dashboard/config'
-    | '/dashboard/ia'
     | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
@@ -137,7 +127,6 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/clientes'
     | '/dashboard/config'
-    | '/dashboard/ia'
     | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
@@ -150,7 +139,6 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/clientes'
     | '/dashboard/config'
-    | '/dashboard/ia'
     | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
@@ -208,13 +196,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardPedidosRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/ia': {
-      id: '/dashboard/ia'
-      path: '/ia'
-      fullPath: '/dashboard/ia'
-      preLoaderRoute: typeof DashboardIaRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/config': {
       id: '/dashboard/config'
       path: '/config'
@@ -250,7 +231,6 @@ interface DashboardRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardClientesRoute: typeof DashboardClientesRoute
   DashboardConfigRoute: typeof DashboardConfigRoute
-  DashboardIaRoute: typeof DashboardIaRoute
   DashboardPedidosRoute: typeof DashboardPedidosRoute
   DashboardProdutoRoute: typeof DashboardProdutoRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
@@ -261,7 +241,6 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardClientesRoute: DashboardClientesRoute,
   DashboardConfigRoute: DashboardConfigRoute,
-  DashboardIaRoute: DashboardIaRoute,
   DashboardPedidosRoute: DashboardPedidosRoute,
   DashboardProdutoRoute: DashboardProdutoRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
