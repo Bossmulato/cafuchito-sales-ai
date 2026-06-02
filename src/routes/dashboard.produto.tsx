@@ -60,6 +60,10 @@ function ProductPage() {
             .order("sort_order", { ascending: true });
           setImages((imgs as ProductImage[]) ?? []);
         }
+        const { data: t } = await supabase
+          .from("ai_training").select("tone,rules,objections,custom_responses")
+          .eq("user_id", user.id).maybeSingle();
+        if (t) setTraining(t as Training);
         setLoaded(true);
       });
   }, [user]);
