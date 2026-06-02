@@ -34,6 +34,7 @@ type ProductImage = { id: string; image_url: string; storage_path: string | null
 function ProductPage() {
   const { user } = useAuth();
   const [form, setForm] = useState<Product>(empty);
+  const [training, setTraining] = useState<Training>(emptyT);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
