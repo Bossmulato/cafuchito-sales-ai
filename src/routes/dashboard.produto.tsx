@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2, ImagePlus, X, Image as ImageIcon } from "lucide-react";
+import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2, ImagePlus, X, Image as ImageIcon, Brain } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/produto")({
   component: ProductPage,
@@ -19,7 +19,15 @@ type Product = {
   payment_data: string;
 };
 
+type Training = {
+  tone: string;
+  rules: string;
+  objections: string;
+  custom_responses: string;
+};
+
 const empty: Product = { name: "", description: "", price_kz: 0, benefits: "", faq: "", payment_data: "" };
+const emptyT: Training = { tone: "", rules: "", objections: "", custom_responses: "" };
 
 type ProductImage = { id: string; image_url: string; storage_path: string | null; label: string; sort_order: number };
 
