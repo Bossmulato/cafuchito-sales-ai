@@ -160,7 +160,7 @@ function DashboardOverview() {
         ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid gap-6">
         <div className="rounded-2xl border border-primary/10 bg-card/60 p-6 backdrop-blur-xl">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -189,32 +189,6 @@ function DashboardOverview() {
                 />
                 <Area type="monotone" dataKey="vendas" stroke="oklch(0.78 0.16 165)" strokeWidth={2} fill="url(#gVendas)" />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-primary/10 bg-card/60 p-6 backdrop-blur-xl">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">Mensagens (14 dias)</h3>
-              <p className="text-xs text-muted-foreground">Volume diário no WhatsApp</p>
-            </div>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.78 0.16 165 / 0.12)" />
-                <XAxis dataKey="label" stroke="oklch(0.7 0.02 170)" fontSize={11} />
-                <YAxis stroke="oklch(0.7 0.02 170)" fontSize={11} />
-                <Tooltip
-                  contentStyle={{
-                    background: "oklch(0.17 0.02 165)",
-                    border: "1px solid oklch(0.78 0.16 165 / 0.3)",
-                    borderRadius: 8,
-                  }}
-                />
-                <Bar dataKey="mensagens" fill="oklch(0.78 0.16 165)" radius={[6, 6, 0, 0]} />
-              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
