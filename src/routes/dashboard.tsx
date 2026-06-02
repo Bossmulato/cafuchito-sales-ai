@@ -3,10 +3,8 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   Sparkles,
   LayoutDashboard,
-  Users,
   ShoppingBag,
   Package,
-  Brain,
   MessageCircle,
   BarChart3,
   Settings,
