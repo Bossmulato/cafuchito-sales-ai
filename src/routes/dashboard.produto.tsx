@@ -342,7 +342,7 @@ function ProductPage() {
             className="flex items-center gap-2 rounded-md bg-gradient-gold px-6 py-3 font-semibold text-primary-foreground shadow-gold hover:opacity-90 disabled:opacity-50 transition"
           >
             {hasProduct ? <Pencil className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-            {saving ? "A guardar..." : hasProduct ? "Atualizar Produto" : "Guardar Produto"}
+            {saving ? "A guardar..." : hasProduct ? "Atualizar Produto & IA" : "Guardar Produto & IA"}
           </button>
           {hasProduct && (
             <button
