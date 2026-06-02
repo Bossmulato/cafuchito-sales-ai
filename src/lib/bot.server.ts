@@ -124,7 +124,7 @@ export async function callGroq(
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       messages: [{ role: "system", content: system }, ...history],
-      temperature: 0.7,
+      temperature: 0.9,
     }),
   });
   if (!res.ok) {
