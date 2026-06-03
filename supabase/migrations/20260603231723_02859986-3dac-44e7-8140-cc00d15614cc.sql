@@ -1,0 +1,1 @@
+CREATE POLICY "owner_delete_ai" ON public.ai_training FOR DELETE USING (auth.uid() = user_id);
