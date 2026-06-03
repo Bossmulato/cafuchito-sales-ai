@@ -164,9 +164,18 @@ function ProductPage() {
     if (!window.confirm("Tem a certeza que quer eliminar o produto? Esta ação não pode ser desfeita.")) return;
     setSaving(true);
     try {
+      for (const img of images) {
+        if (img.storage_path) {
+          await supabase.storage.from("product-images").remove([img.storage_path]);
+        }
+      }
+      await supabase.from("product_images").delete().eq("product_id", form.id);
+      await supabase.from("ai_training").delete().eq("user_id", user.id);
       const { error } = await supabase.from("products").delete().eq("id", form.id);
       if (error) throw error;
       setForm(empty);
+      setTraining(emptyT);
+      setImages([]);
       setLastSaved(null);
       toast.success("Produto eliminado com sucesso!");
     } catch (err) {
