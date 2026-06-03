@@ -237,7 +237,6 @@ export type Database = {
           business_name: string
           currency: string
           default_greeting: string
-          groq_api_key: string
           logo_url: string
           updated_at: string
           user_id: string
@@ -246,7 +245,6 @@ export type Database = {
           business_name?: string
           currency?: string
           default_greeting?: string
-          groq_api_key?: string
           logo_url?: string
           updated_at?: string
           user_id: string
@@ -255,7 +253,6 @@ export type Database = {
           business_name?: string
           currency?: string
           default_greeting?: string
-          groq_api_key?: string
           logo_url?: string
           updated_at?: string
           user_id?: string
