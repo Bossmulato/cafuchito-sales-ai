@@ -17,6 +17,7 @@ export type Database = {
       ai_training: {
         Row: {
           custom_responses: string
+          extra_info: string
           objections: string
           rules: string
           tone: string
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           custom_responses?: string
+          extra_info?: string
           objections?: string
           rules?: string
           tone?: string
@@ -33,6 +35,7 @@ export type Database = {
         }
         Update: {
           custom_responses?: string
+          extra_info?: string
           objections?: string
           rules?: string
           tone?: string
@@ -235,27 +238,42 @@ export type Database = {
       user_settings: {
         Row: {
           business_name: string
+          category: string
+          city: string
           currency: string
           default_greeting: string
+          delivery_methods: string
           logo_url: string
+          payment_methods: string
           updated_at: string
           user_id: string
+          whatsapp_number: string
         }
         Insert: {
           business_name?: string
+          category?: string
+          city?: string
           currency?: string
           default_greeting?: string
+          delivery_methods?: string
           logo_url?: string
+          payment_methods?: string
           updated_at?: string
           user_id: string
+          whatsapp_number?: string
         }
         Update: {
           business_name?: string
+          category?: string
+          city?: string
           currency?: string
           default_greeting?: string
+          delivery_methods?: string
           logo_url?: string
+          payment_methods?: string
           updated_at?: string
           user_id?: string
+          whatsapp_number?: string
         }
         Relationships: []
       }
