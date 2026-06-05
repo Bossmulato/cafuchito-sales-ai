@@ -6,7 +6,6 @@ import {
   ShoppingBag,
   Package,
   MessageCircle,
-  BarChart3,
   Settings,
   Loader2,
 } from "lucide-react";
@@ -20,7 +19,6 @@ const nav = [
   { to: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingBag },
   { to: "/dashboard/produto", label: "Produto & IA", icon: Package },
   { to: "/dashboard/whatsapp", label: "WhatsApp", icon: MessageCircle },
-  { to: "/dashboard/analytics", label: "Analítica", icon: BarChart3 },
   { to: "/dashboard/config", label: "Configurações", icon: Settings },
 ];
 

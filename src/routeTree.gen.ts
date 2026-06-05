@@ -17,7 +17,6 @@ import { Route as DashboardProdutoRouteImport } from './routes/dashboard.produto
 import { Route as DashboardPedidosRouteImport } from './routes/dashboard.pedidos'
 import { Route as DashboardConfigRouteImport } from './routes/dashboard.config'
 import { Route as DashboardClientesRouteImport } from './routes/dashboard.clientes'
-import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -60,11 +59,6 @@ const DashboardClientesRoute = DashboardClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const ApiPublicWhatsappWebhookRoute =
   ApiPublicWhatsappWebhookRouteImport.update({
     id: '/api/public/whatsapp/webhook',
@@ -75,7 +69,6 @@ const ApiPublicWhatsappWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
-  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
   '/dashboard/pedidos': typeof DashboardPedidosRoute
@@ -86,7 +79,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
   '/dashboard/pedidos': typeof DashboardPedidosRoute
@@ -99,7 +91,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
-  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
   '/dashboard/pedidos': typeof DashboardPedidosRoute
@@ -113,7 +104,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/dashboard/analytics'
     | '/dashboard/clientes'
     | '/dashboard/config'
     | '/dashboard/pedidos'
@@ -124,7 +114,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard/analytics'
     | '/dashboard/clientes'
     | '/dashboard/config'
     | '/dashboard/pedidos'
@@ -136,7 +125,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
-    | '/dashboard/analytics'
     | '/dashboard/clientes'
     | '/dashboard/config'
     | '/dashboard/pedidos'
@@ -210,13 +198,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardClientesRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/analytics': {
-      id: '/dashboard/analytics'
-      path: '/analytics'
-      fullPath: '/dashboard/analytics'
-      preLoaderRoute: typeof DashboardAnalyticsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/api/public/whatsapp/webhook': {
       id: '/api/public/whatsapp/webhook'
       path: '/api/public/whatsapp/webhook'
@@ -228,7 +209,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
-  DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardClientesRoute: typeof DashboardClientesRoute
   DashboardConfigRoute: typeof DashboardConfigRoute
   DashboardPedidosRoute: typeof DashboardPedidosRoute
@@ -238,7 +218,6 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardClientesRoute: DashboardClientesRoute,
   DashboardConfigRoute: DashboardConfigRoute,
   DashboardPedidosRoute: DashboardPedidosRoute,
@@ -259,3 +238,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
