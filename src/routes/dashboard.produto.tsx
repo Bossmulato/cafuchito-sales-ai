@@ -3,11 +3,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { Package, Save, Pencil, CheckCircle2, Sparkles, Trash2, ImagePlus, X, Image as ImageIcon, Brain } from "lucide-react";
+import {
+  Store, Package, Sparkles, Rocket, Trash2, ImagePlus, X, Image as ImageIcon, Loader2, CheckCircle2,
+} from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/produto")({
   component: ProductPage,
 });
+
+type Business = {
+  business_name: string;
+  category: string;
+  city: string;
+  whatsapp_number: string;
+  payment_methods: string;
+  delivery_methods: string;
+};
 
 type Product = {
   id?: string;
@@ -15,78 +26,87 @@ type Product = {
   description: string;
   price_kz: number;
   benefits: string;
-  faq: string;
-  payment_data: string;
 };
-
-type Training = {
-  tone: string;
-  rules: string;
-  objections: string;
-  custom_responses: string;
-};
-
-const empty: Product = { name: "", description: "", price_kz: 0, benefits: "", faq: "", payment_data: "" };
-const emptyT: Training = { tone: "", rules: "", objections: "", custom_responses: "" };
 
 type ProductImage = { id: string; image_url: string; storage_path: string | null; label: string; sort_order: number };
 
+const emptyB: Business = {
+  business_name: "",
+  category: "",
+  city: "",
+  whatsapp_number: "",
+  payment_methods: "",
+  delivery_methods: "",
+};
+const emptyP: Product = { name: "", description: "", price_kz: 0, benefits: "" };
+
 function ProductPage() {
   const { user } = useAuth();
-  const [form, setForm] = useState<Product>(empty);
-  const [training, setTraining] = useState<Training>(emptyT);
-  const [saving, setSaving] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [biz, setBiz] = useState<Business>(emptyB);
+  const [prod, setProd] = useState<Product>(emptyP);
+  const [extraInfo, setExtraInfo] = useState("");
   const [images, setImages] = useState<ProductImage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("products")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(async ({ data }) => {
-        if (data) {
-          setForm(data as Product);
-          setLastSaved((data as any).updated_at ?? null);
-          const { data: imgs } = await supabase
-            .from("product_images").select("*")
-            .eq("product_id", (data as any).id)
-            .order("sort_order", { ascending: true });
-          setImages((imgs as ProductImage[]) ?? []);
-        }
-        const { data: t } = await supabase
-          .from("ai_training").select("tone,rules,objections,custom_responses")
-          .eq("user_id", user.id).maybeSingle();
-        if (t) setTraining(t as Training);
-        setLoaded(true);
-      });
+    (async () => {
+      const [{ data: s }, { data: p }, { data: t }] = await Promise.all([
+        supabase
+          .from("user_settings")
+          .select("business_name,category,city,whatsapp_number,payment_methods,delivery_methods")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("products")
+          .select("id,name,description,price_kz,benefits")
+          .eq("user_id", user.id)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase.from("ai_training").select("extra_info").eq("user_id", user.id).maybeSingle(),
+      ]);
+      if (s) setBiz({ ...emptyB, ...(s as Partial<Business>) });
+      if (p) {
+        setProd(p as Product);
+        const { data: imgs } = await supabase
+          .from("product_images")
+          .select("id,image_url,storage_path,label,sort_order")
+          .eq("product_id", (p as { id: string }).id)
+          .order("sort_order", { ascending: true });
+        setImages((imgs as ProductImage[]) ?? []);
+      }
+      if (t) setExtraInfo((t as { extra_info?: string }).extra_info ?? "");
+      setLoading(false);
+    })();
   }, [user]);
 
   const uploadImages = async (files: FileList | null) => {
-    if (!files || !user || !form.id) return;
+    if (!files || !user || !prod.id) return;
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
         const ext = file.name.split(".").pop() || "jpg";
-        const path = `${user.id}/${form.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("product-images")
+        const path = `${user.id}/${prod.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("product-images")
           .upload(path, file, { contentType: file.type, upsert: false });
         if (upErr) throw upErr;
         const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
-        const { data: row, error: insErr } = await supabase.from("product_images").insert({
-          product_id: form.id,
-          user_id: user.id,
-          image_url: pub.publicUrl,
-          storage_path: path,
-          label: "",
-          sort_order: images.length,
-        }).select().single();
+        const { data: row, error: insErr } = await supabase
+          .from("product_images")
+          .insert({
+            product_id: prod.id,
+            user_id: user.id,
+            image_url: pub.publicUrl,
+            storage_path: path,
+            label: "",
+            sort_order: images.length,
+          })
+          .select()
+          .single();
         if (insErr) throw insErr;
         setImages((prev) => [...prev, row as ProductImage]);
       }
@@ -100,58 +120,62 @@ function ProductPage() {
 
   const removeImage = async (img: ProductImage) => {
     try {
-      if (img.storage_path) {
-        await supabase.storage.from("product-images").remove([img.storage_path]);
-      }
+      if (img.storage_path) await supabase.storage.from("product-images").remove([img.storage_path]);
       await supabase.from("product_images").delete().eq("id", img.id);
       setImages((prev) => prev.filter((i) => i.id !== img.id));
-      toast.success("Foto removida");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao remover");
     }
   };
 
-  const updateImageLabel = async (id: string, label: string) => {
-    setImages((prev) => prev.map((i) => (i.id === id ? { ...i, label } : i)));
-    await supabase.from("product_images").update({ label }).eq("id", id);
-  };
-
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (!biz.business_name.trim()) return toast.error("Diga o nome do seu negócio");
+    if (!prod.name.trim()) return toast.error("Diga o nome do produto");
     setSaving(true);
     try {
-      if (form.id) {
-        const { error } = await supabase.from("products").update({
-          name: form.name,
-          description: form.description,
-          price_kz: form.price_kz,
-          benefits: form.benefits,
-          faq: form.faq,
-          payment_data: form.payment_data,
-        }).eq("id", form.id);
+      // 1. Business
+      const { error: bErr } = await supabase
+        .from("user_settings")
+        .upsert({ user_id: user.id, ...biz }, { onConflict: "user_id" });
+      if (bErr) throw bErr;
+
+      // 2. Product
+      if (prod.id) {
+        const { error } = await supabase
+          .from("products")
+          .update({
+            name: prod.name,
+            description: prod.description,
+            price_kz: prod.price_kz,
+            benefits: prod.benefits,
+          })
+          .eq("id", prod.id);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.from("products").insert({
-          user_id: user.id,
-          name: form.name,
-          description: form.description,
-          price_kz: form.price_kz,
-          benefits: form.benefits,
-          faq: form.faq,
-          payment_data: form.payment_data,
-        }).select().single();
+        const { data, error } = await supabase
+          .from("products")
+          .insert({
+            user_id: user.id,
+            name: prod.name,
+            description: prod.description,
+            price_kz: prod.price_kz,
+            benefits: prod.benefits,
+          })
+          .select()
+          .single();
         if (error) throw error;
-        if (data) {
-          setForm(data as Product);
-          setLastSaved((data as any).updated_at ?? null);
-        }
+        if (data) setProd(data as Product);
       }
+
+      // 3. AI extra info
       const { error: tErr } = await supabase
         .from("ai_training")
-        .upsert({ user_id: user.id, ...training }, { onConflict: "user_id" });
+        .upsert({ user_id: user.id, extra_info: extraInfo }, { onConflict: "user_id" });
       if (tErr) throw tErr;
-      toast.success("Produto e treino da IA guardados!");
+
+      toast.success("🚀 Vendedor IA ativado!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao guardar");
     } finally {
@@ -160,24 +184,19 @@ function ProductPage() {
   };
 
   const remove = async () => {
-    if (!user || !form.id) return;
-    if (!window.confirm("Tem a certeza que quer eliminar o produto? Esta ação não pode ser desfeita.")) return;
+    if (!user || !prod.id) return;
+    if (!window.confirm("Eliminar o produto? Esta ação não pode ser desfeita.")) return;
     setSaving(true);
     try {
       for (const img of images) {
-        if (img.storage_path) {
-          await supabase.storage.from("product-images").remove([img.storage_path]);
-        }
+        if (img.storage_path) await supabase.storage.from("product-images").remove([img.storage_path]);
       }
-      await supabase.from("product_images").delete().eq("product_id", form.id);
-      await supabase.from("ai_training").delete().eq("user_id", user.id);
-      const { error } = await supabase.from("products").delete().eq("id", form.id);
+      await supabase.from("product_images").delete().eq("product_id", prod.id);
+      const { error } = await supabase.from("products").delete().eq("id", prod.id);
       if (error) throw error;
-      setForm(empty);
-      setTraining(emptyT);
+      setProd(emptyP);
       setImages([]);
-      setLastSaved(null);
-      toast.success("Produto eliminado com sucesso!");
+      toast.success("Produto eliminado");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao eliminar");
     } finally {
@@ -185,185 +204,275 @@ function ProductPage() {
     }
   };
 
-  const field = "w-full rounded-md border border-gold/30 bg-input/40 px-4 py-3 text-foreground outline-none focus:border-primary";
-  const hasProduct = !!form.id;
+  if (loading) {
+    return (
+      <div className="flex h-[40vh] items-center justify-center gap-2 text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" /> A carregar…
+      </div>
+    );
+  }
+
+  const hasProduct = !!prod.id;
+  const input =
+    "w-full rounded-lg border border-border bg-background/60 px-4 py-2.5 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  const labelCls = "mb-1.5 block text-xs font-medium text-muted-foreground";
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-8 flex items-center gap-3">
-        <Package className="h-6 w-6 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold text-gradient-gold">
-            {hasProduct ? "Produto & Treino da IA" : "Configurar Produto & IA"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Configure o produto e personalize como a IA conversa com os seus clientes.
-          </p>
+    <div className="mx-auto max-w-3xl space-y-8 pb-12">
+      <header className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-primary">
+          <Sparkles className="h-3.5 w-3.5" />
+          Configuração rápida
         </div>
-      </div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Ativar Vendedor IA</h1>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          Preencha os 3 blocos abaixo e a sua IA começa a vender no WhatsApp. Sem prompts, sem treinos manuais.
+        </p>
+      </header>
 
-      {hasProduct && (
-        <div className="mb-6 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/10 p-4">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-          <div className="text-sm text-foreground">
-            <p className="font-semibold">Produto configurado</p>
-            <p className="text-muted-foreground">
-              {lastSaved
-                ? `Última atualização: ${new Date(lastSaved).toLocaleString("pt-PT")}`
-                : "Pode editar os campos abaixo e guardar as alterações."}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <form onSubmit={save} className="space-y-5 rounded-2xl border border-gold/30 bg-card/70 p-8 shadow-luxe">
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Nome do Produto</label>
-          <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Descrição</label>
-          <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Preço</label>
-          <input type="number" min={0} step="0.01" value={form.price_kz}
-            onChange={(e) => setForm({ ...form, price_kz: Number(e.target.value) })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Benefícios</label>
-          <textarea rows={3} placeholder="• Entrega rápida..." value={form.benefits}
-            onChange={(e) => setForm({ ...form, benefits: e.target.value })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">FAQ</label>
-          <textarea rows={4} placeholder={"P: ...\nR: ..."} value={form.faq}
-            onChange={(e) => setForm({ ...form, faq: e.target.value })} className={field} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Dados de Pagamento</label>
-          <textarea rows={3} placeholder={"Métodos aceites, IBAN, links, instruções..."} value={form.payment_data}
-            onChange={(e) => setForm({ ...form, payment_data: e.target.value })} className={field} />
-        </div>
-
-        <div className="rounded-xl border border-gold/30 bg-background/40 p-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Fotos do produto ({images.length})
-              </h3>
+      <form onSubmit={save} className="space-y-6">
+        {/* SECTION 1 — BUSINESS */}
+        <section className="rounded-2xl border border-border bg-card/70 p-6 shadow-sm backdrop-blur sm:p-8">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Store className="h-4.5 w-4.5" />
             </div>
-            <label
-              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium transition ${
-                hasProduct
-                  ? "cursor-pointer border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
-                  : "cursor-not-allowed border-muted-foreground/20 bg-muted/20 text-muted-foreground"
-              }`}
-            >
-              <ImagePlus className="h-4 w-4" />
-              {uploading ? "A carregar..." : "Adicionar fotos"}
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">1. Dados do negócio</h2>
+              <p className="text-xs text-muted-foreground">A IA usa isto para se apresentar ao cliente.</p>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Nome do negócio *</label>
               <input
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                disabled={uploading || !hasProduct}
-                onChange={(e) => { uploadImages(e.target.files); e.target.value = ""; }}
+                required
+                value={biz.business_name}
+                onChange={(e) => setBiz({ ...biz, business_name: e.target.value })}
+                placeholder="Ex: Loja Estilo"
+                className={input}
               />
-            </label>
+            </div>
+            <div>
+              <label className={labelCls}>Categoria</label>
+              <input
+                value={biz.category}
+                onChange={(e) => setBiz({ ...biz, category: e.target.value })}
+                placeholder="Ex: Moda, Eletrónica, Cosmética"
+                className={input}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Cidade</label>
+              <input
+                value={biz.city}
+                onChange={(e) => setBiz({ ...biz, city: e.target.value })}
+                placeholder="Ex: Luanda, Lisboa, São Paulo"
+                className={input}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>WhatsApp de atendimento</label>
+              <input
+                value={biz.whatsapp_number}
+                onChange={(e) => setBiz({ ...biz, whatsapp_number: e.target.value })}
+                placeholder="+244 900 000 000"
+                className={input}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Métodos de pagamento</label>
+              <textarea
+                rows={3}
+                value={biz.payment_methods}
+                onChange={(e) => setBiz({ ...biz, payment_methods: e.target.value })}
+                placeholder="Ex: Transferência BAI, Multicaixa Express, MB Way, Pix"
+                className={input}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Métodos de entrega</label>
+              <textarea
+                rows={3}
+                value={biz.delivery_methods}
+                onChange={(e) => setBiz({ ...biz, delivery_methods: e.target.value })}
+                placeholder="Ex: Entrega ao domicílio, levantamento na loja, envio CTT"
+                className={input}
+              />
+            </div>
           </div>
-          <p className="mb-3 text-xs text-muted-foreground">
-            Quando o cliente pedir <span className="font-medium text-foreground">fotos, modelos ou cores</span>, o bot envia automaticamente estas imagens. Use a legenda para identificar cor/modelo.
-          </p>
-          {!hasProduct ? (
-            <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-6 text-center text-sm text-foreground">
-              👉 Guarde primeiro o produto (botão abaixo) para poder carregar as fotos.
+        </section>
+
+        {/* SECTION 2 — PRODUCT */}
+        <section className="rounded-2xl border border-border bg-card/70 p-6 shadow-sm backdrop-blur sm:p-8">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Package className="h-4.5 w-4.5" />
             </div>
-          ) : images.length === 0 ? (
-            <div className="rounded-md border border-dashed border-gold/30 p-6 text-center text-sm text-muted-foreground">
-              Sem fotos. Clique em <span className="font-medium text-foreground">"Adicionar fotos"</span> para o bot mostrar ao cliente.
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">2. Produto</h2>
+              <p className="text-xs text-muted-foreground">O produto que a IA vai vender.</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {images.map((img) => (
-                <div key={img.id} className="group relative overflow-hidden rounded-lg border border-gold/30 bg-card/40">
-                  <img src={img.image_url} alt={img.label || "produto"} className="aspect-square w-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(img)}
-                    className="absolute right-1 top-1 rounded-full bg-destructive/90 p-1 text-destructive-foreground opacity-0 transition group-hover:opacity-100"
-                    title="Remover"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Nome do produto *</label>
+              <input
+                required
+                value={prod.name}
+                onChange={(e) => setProd({ ...prod, name: e.target.value })}
+                placeholder="Ex: Ténis Premium"
+                className={input}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Preço</label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={prod.price_kz}
+                onChange={(e) => setProd({ ...prod, price_kz: Number(e.target.value) })}
+                className={input}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Descrição</label>
+              <textarea
+                rows={3}
+                value={prod.description}
+                onChange={(e) => setProd({ ...prod, description: e.target.value })}
+                placeholder="O que é o produto, para quem é, o que resolve."
+                className={input}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Benefícios principais</label>
+              <textarea
+                rows={3}
+                value={prod.benefits}
+                onChange={(e) => setProd({ ...prod, benefits: e.target.value })}
+                placeholder="• Durável\n• Confortável\n• Entrega rápida"
+                className={input}
+              />
+            </div>
+
+            {/* Images */}
+            <div className="sm:col-span-2">
+              <div className="mb-2 flex items-center justify-between">
+                <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <ImageIcon className="h-3.5 w-3.5" /> Imagens do produto ({images.length})
+                </label>
+                <label
+                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                    hasProduct
+                      ? "border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                      : "cursor-not-allowed border border-border bg-muted/30 text-muted-foreground"
+                  }`}
+                >
+                  <ImagePlus className="h-3.5 w-3.5" />
+                  {uploading ? "A carregar…" : "Adicionar"}
                   <input
-                    type="text"
-                    placeholder="Ex: Cor preta, Modelo XL"
-                    defaultValue={img.label}
-                    onBlur={(e) => updateImageLabel(img.id, e.target.value)}
-                    className="w-full border-t border-gold/20 bg-input/40 px-2 py-1.5 text-xs text-foreground outline-none focus:border-primary"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading || !hasProduct}
+                    onChange={(e) => {
+                      uploadImages(e.target.files);
+                      e.target.value = "";
+                    }}
                   />
+                </label>
+              </div>
+              {!hasProduct ? (
+                <p className="rounded-lg border border-dashed border-border bg-muted/20 p-4 text-center text-xs text-muted-foreground">
+                  Guarde primeiro o produto para carregar imagens.
+                </p>
+              ) : images.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border bg-muted/20 p-4 text-center text-xs text-muted-foreground">
+                  Sem fotos. Adicione para a IA mostrar ao cliente automaticamente.
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {images.map((img) => (
+                    <div key={img.id} className="group relative aspect-square overflow-hidden rounded-lg border border-border">
+                      <img src={img.image_url} alt="" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(img)}
+                        className="absolute right-1 top-1 rounded-full bg-destructive/90 p-1 text-destructive-foreground opacity-0 transition group-hover:opacity-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        </section>
 
-        <div className="rounded-xl border border-gold/30 bg-background/40 p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Brain className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Treino da IA
-            </h3>
+        {/* SECTION 3 — AI BEHAVIOR */}
+        <section className="rounded-2xl border border-border bg-card/70 p-6 shadow-sm backdrop-blur sm:p-8">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Sparkles className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">3. Comportamento da IA</h2>
+              <p className="text-xs text-muted-foreground">Opcional. Tudo o resto é automático.</p>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Ensine a IA a conversar como um humano da sua marca. Tudo é injetado no prompt.
-          </p>
-          <div>
-            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Tom de voz</label>
-            <textarea rows={2} placeholder="Ex: amigável, próximo, conversacional, como um amigo a recomendar"
-              value={training.tone} onChange={(e) => setTraining({ ...training, tone: e.target.value })} className={field} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Regras de atendimento</label>
-            <textarea rows={3} placeholder={"Ex:\n- Nunca dar descontos sem autorização\n- Confirmar morada antes do envio"}
-              value={training.rules} onChange={(e) => setTraining({ ...training, rules: e.target.value })} className={field} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Objeções comuns</label>
-            <textarea rows={3} placeholder={"Ex:\n- 'Está caro' → reforçar valor\n- 'Vou pensar' → criar urgência"}
-              value={training.objections} onChange={(e) => setTraining({ ...training, objections: e.target.value })} className={field} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Respostas personalizadas</label>
-            <textarea rows={3} placeholder={"P: Fazem entrega ao domingo?\nR: Sim, com taxa adicional."}
-              value={training.custom_responses} onChange={(e) => setTraining({ ...training, custom_responses: e.target.value })} className={field} />
-          </div>
-        </div>
 
+          <label className={labelCls}>Informações extras para a IA</label>
+          <textarea
+            rows={5}
+            value={extraInfo}
+            onChange={(e) => setExtraInfo(e.target.value)}
+            placeholder="Escreva qualquer informação importante sobre o seu negócio, entregas, garantias, promoções ou regras especiais."
+            className={input}
+          />
 
+          <div className="mt-5 rounded-xl border border-primary/15 bg-primary/5 p-4">
+            <p className="mb-2 flex items-center gap-2 text-xs font-medium text-primary">
+              <CheckCircle2 className="h-3.5 w-3.5" /> A IA já faz tudo isto automaticamente
+            </p>
+            <ul className="grid grid-cols-1 gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+              <li>• Apresenta o negócio</li>
+              <li>• Responde dúvidas sobre o produto</li>
+              <li>• Cria FAQ automática</li>
+              <li>• Explica preço e formas de pagamento</li>
+              <li>• Trata da entrega</li>
+              <li>• Tranquiliza sobre garantia</li>
+              <li>• Responde a objeções</li>
+              <li>• Fecha a venda</li>
+            </ul>
+          </div>
+        </section>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={saving || !loaded}
-            className="flex items-center gap-2 rounded-md bg-gradient-gold px-6 py-3 font-semibold text-primary-foreground shadow-gold hover:opacity-90 disabled:opacity-50 transition"
-          >
-            {hasProduct ? <Pencil className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-            {saving ? "A guardar..." : hasProduct ? "Atualizar Produto & IA" : "Guardar Produto & IA"}
-          </button>
-          {hasProduct && (
+        {/* ACTIONS */}
+        <div className="sticky bottom-4 z-10 flex flex-col-reverse gap-3 rounded-2xl border border-border bg-background/80 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+          {hasProduct ? (
             <button
               type="button"
               onClick={remove}
               disabled={saving}
-              className="flex items-center gap-2 rounded-md border border-destructive/40 px-6 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50 transition"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-destructive/30 px-4 py-2.5 text-sm font-medium text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
             >
-              <Trash2 className="h-4 w-4" />
-              Eliminar Produto
+              <Trash2 className="h-4 w-4" /> Eliminar produto
             </button>
+          ) : (
+            <span className="text-xs text-muted-foreground">Pronto a ativar.</span>
           )}
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-gold px-6 py-3 text-sm font-semibold text-primary-foreground shadow-gold transition hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+            {saving ? "A ativar…" : "🚀 Ativar Vendedor IA"}
+          </button>
         </div>
       </form>
     </div>
