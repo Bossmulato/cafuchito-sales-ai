@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   Sparkles,
   LayoutDashboard,
-  ShoppingBag,
   Package,
   MessageCircle,
   Settings,
@@ -16,7 +15,6 @@ export const Route = createFileRoute("/dashboard")({
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingBag },
   { to: "/dashboard/produto", label: "Produto & IA", icon: Package },
   { to: "/dashboard/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/dashboard/config", label: "Configurações", icon: Settings },
