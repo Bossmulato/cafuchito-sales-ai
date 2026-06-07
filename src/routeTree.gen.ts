@@ -14,7 +14,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardProdutoRouteImport } from './routes/dashboard.produto'
-import { Route as DashboardConfigRouteImport } from './routes/dashboard.config'
 import { Route as DashboardClientesRouteImport } from './routes/dashboard.clientes'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 
@@ -43,11 +42,6 @@ const DashboardProdutoRoute = DashboardProdutoRouteImport.update({
   path: '/produto',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardConfigRoute = DashboardConfigRouteImport.update({
-  id: '/config',
-  path: '/config',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardClientesRoute = DashboardClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -64,7 +58,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/clientes': typeof DashboardClientesRoute
-  '/dashboard/config': typeof DashboardConfigRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -73,7 +66,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
-  '/dashboard/config': typeof DashboardConfigRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -84,7 +76,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/clientes': typeof DashboardClientesRoute
-  '/dashboard/config': typeof DashboardConfigRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -96,7 +87,6 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/dashboard/clientes'
-    | '/dashboard/config'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard/'
@@ -105,7 +95,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard/clientes'
-    | '/dashboard/config'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard'
@@ -115,7 +104,6 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/dashboard/clientes'
-    | '/dashboard/config'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard/'
@@ -165,13 +153,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProdutoRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/config': {
-      id: '/dashboard/config'
-      path: '/config'
-      fullPath: '/dashboard/config'
-      preLoaderRoute: typeof DashboardConfigRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/clientes': {
       id: '/dashboard/clientes'
       path: '/clientes'
@@ -191,7 +172,6 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardClientesRoute: typeof DashboardClientesRoute
-  DashboardConfigRoute: typeof DashboardConfigRoute
   DashboardProdutoRoute: typeof DashboardProdutoRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -199,7 +179,6 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardClientesRoute: DashboardClientesRoute,
-  DashboardConfigRoute: DashboardConfigRoute,
   DashboardProdutoRoute: DashboardProdutoRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardIndexRoute: DashboardIndexRoute,
