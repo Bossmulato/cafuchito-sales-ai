@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Package,
   MessageCircle,
-  Settings,
   Loader2,
 } from "lucide-react";
 
@@ -17,7 +16,6 @@ const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/dashboard/produto", label: "Produto & IA", icon: Package },
   { to: "/dashboard/whatsapp", label: "WhatsApp", icon: MessageCircle },
-  { to: "/dashboard/config", label: "Configurações", icon: Settings },
 ];
 
 function DashboardLayout() {
