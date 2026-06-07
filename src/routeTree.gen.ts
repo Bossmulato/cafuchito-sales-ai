@@ -14,7 +14,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardProdutoRouteImport } from './routes/dashboard.produto'
-import { Route as DashboardPedidosRouteImport } from './routes/dashboard.pedidos'
 import { Route as DashboardConfigRouteImport } from './routes/dashboard.config'
 import { Route as DashboardClientesRouteImport } from './routes/dashboard.clientes'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
@@ -44,11 +43,6 @@ const DashboardProdutoRoute = DashboardProdutoRouteImport.update({
   path: '/produto',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardPedidosRoute = DashboardPedidosRouteImport.update({
-  id: '/pedidos',
-  path: '/pedidos',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardConfigRoute = DashboardConfigRouteImport.update({
   id: '/config',
   path: '/config',
@@ -71,7 +65,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
-  '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -81,7 +74,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
-  '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -93,7 +85,6 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/config': typeof DashboardConfigRoute
-  '/dashboard/pedidos': typeof DashboardPedidosRoute
   '/dashboard/produto': typeof DashboardProdutoRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -106,7 +97,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/clientes'
     | '/dashboard/config'
-    | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard/'
@@ -116,7 +106,6 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard/clientes'
     | '/dashboard/config'
-    | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard'
@@ -127,7 +116,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/clientes'
     | '/dashboard/config'
-    | '/dashboard/pedidos'
     | '/dashboard/produto'
     | '/dashboard/whatsapp'
     | '/dashboard/'
@@ -177,13 +165,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProdutoRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/pedidos': {
-      id: '/dashboard/pedidos'
-      path: '/pedidos'
-      fullPath: '/dashboard/pedidos'
-      preLoaderRoute: typeof DashboardPedidosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/config': {
       id: '/dashboard/config'
       path: '/config'
@@ -211,7 +192,6 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardClientesRoute: typeof DashboardClientesRoute
   DashboardConfigRoute: typeof DashboardConfigRoute
-  DashboardPedidosRoute: typeof DashboardPedidosRoute
   DashboardProdutoRoute: typeof DashboardProdutoRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -220,7 +200,6 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardClientesRoute: DashboardClientesRoute,
   DashboardConfigRoute: DashboardConfigRoute,
-  DashboardPedidosRoute: DashboardPedidosRoute,
   DashboardProdutoRoute: DashboardProdutoRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardIndexRoute: DashboardIndexRoute,
